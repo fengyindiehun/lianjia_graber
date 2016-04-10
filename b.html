@@ -1,0 +1,1691 @@
+
+
+
+
+
+
+
+
+
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <title>核对订单信息</title>
+        <link href="/themes/css/css.css" rel="stylesheet" type="text/css" />
+         <script type="text/javascript" src="/js/pages.js"></script>
+        <script type="text/javascript" src="/js/jquery.js"></script>
+        <script type="text/javascript" src="/js/jquery.form.js"></script>
+        <script type="text/javascript" src="/js/jquery.validate.js"></script>
+        <script type="text/javascript" src="/js/validateMsg.js"></script>
+        <script type="text/javascript">
+            var jq=jQuery.noConflict();
+        </script>
+       
+<link type="text/css" rel="stylesheet" href="/themes/css/cart.css">
+<style>
+
+.calendar {
+    background-color: #e4eef7;
+    margin: 10px 0;
+    overflow: hidden;
+    padding: 0;
+    width: 390px;
+}
+
+ .calendar .h3 {
+    background: none repeat scroll 0 0 #53b8eb;
+    color: #fff;
+    font: 14px/32px Arial;
+    height: 32px;
+    padding: 4px 32px 0 34px;
+    position: relative;
+    text-align: left;
+    z-index: 1;
+}
+ .ul_time_tab {
+    overflow: hidden;
+    width: 100%;
+}
+.ul_time_tab ul {
+    width: 1100%;
+}
+ .calendar .ul_time_tab li {
+    background: none repeat scroll 0 0 #2c87b5;
+    cursor: pointer;
+    float: left;
+    margin: 0 1px 0 0;
+    text-align: center;
+    width: 107px;
+}
+.ul_time_tab li:hover {
+    background: none repeat scroll 0 0 #e4eef7;
+    color: #239ad6;
+}
+ .calendar .cal_table {
+    padding: 0 3px 3px;
+}
+ .calendar table {
+    width: 100%;
+}
+.calendar table th {
+    font-weight: bold;
+    line-height: 25px;
+    width: 52px;
+}
+ .calendar table th .weekend {
+    background-color: #e4eef7;
+    color: #f70;
+}
+ .calendar table td {
+    border-bottom: 1px solid #bcdfde;
+    border-right: 1px solid #bcdfde;
+}
+ .calendar table td div.om {
+    background-color: #fff;
+    border: 1px solid #e5f4f3;
+    color: #bbb;
+    height: 40px;
+    overflow: hidden;
+    padding: 4px 4px 0 3px;
+    position: relative;
+    z-index: 1;
+}
+.calendar table td div {
+    background: none repeat scroll 0 0 #fff;
+    border: 1px solid #fff;
+    cursor: pointer;
+    height: 40px;
+    overflow: hidden;
+	padding: 4px 4px 0 3px;
+    position: relative;
+    z-index: 1;
+}
+ .calendar .ul_time_tab .on,.calendar .ul_time_tab li:hover {
+    background: none repeat scroll 0 0 #e4eef7;
+    color: #239ad6;
+}
+
+.calendar table td div.active {
+    background: none repeat scroll 0 0 #fffdd8;
+    border-color: #f70;
+}
+.calendar table td div p {
+    line-height: 12px;
+    color: #999;
+}
+.calendar table td div p .red {
+    color: #f00;
+    float: right;
+    font-size: 12px;
+    line-height: 12px;
+}
+ .calendar table td div .price {
+    left: 3px;
+    position: absolute;
+    top: 20px;
+    color: #999;
+    line-height: 12px;
+    margin-left: 0px;
+    
+}
+ .calendar table td div:hover {
+    border: 1px solid #f70;
+}
+.calendar table td div.disable {
+    background-color: #fff;
+    border: 1px solid #fff;
+    color: #999;
+    cursor: default;
+}
+ .calendar table td div.today {
+    background-color: #fffeee;
+    border: 2px solid #fff;
+    color: #fe3942;
+}
+.file_a{
+display:inline-block; 
+width: 30px;
+height: 20px; 
+position:relative; 
+overflow:hidden;
+background: url('/themes/images/20150510003231.png');
+vertical-align: middle;
+}
+.file_file{
+position:absolute; 
+right:0; 
+top:0; 
+font-size:100px; 
+opacity:0; 
+filter:alpha(opacity=0);
+}
+</style>
+
+
+<script type="text/javascript">
+
+jq(document).ready(function(){
+	  getUserPayAccountList();
+	  getUserPostAddressList();
+	  getInfo();
+	  
+	  //加载日期
+	  getTourYuStockListByMonth();
+ });
+ 
+ 
+function selectDateLast01(json,date){
+	var retr = -1;
+	for(var i= 0;i<json.length;i++){
+		if(json[i].ZNTS_OUT_DATE==date){
+			if(parseInt(json[i].ZNTS_CHENG_QTY)>parseInt(json[i].ZNTS_CHENG_SALE)){
+				return parseInt(json[i].ZNTS_CHENG_QTY)-parseInt(json[i].ZNTS_CHENG_SALE);
+			}
+			return 0;
+		}
+	}
+	return retr;
+}
+
+function selectDateLast02(json,date){
+	var retr = -1;
+	for(var i= 0;i<json.length;i++){
+		if(json[i].ZNTS_OUT_DATE==date){
+			if(parseInt(json[i].ZNTS_ER_QTY)>parseInt(json[i].ZNTS_ER_SALE)){
+				return parseInt(json[i].ZNTS_ER_QTY)-parseInt(json[i].ZNTS_ER_SALE);
+			}
+			return 0;
+		}
+	}
+	return retr;
+}
+
+function selectOutDate(obj,date,type){
+	jq(".cal_table").find("div").removeClass("active");
+	jq(obj).addClass("active");
+	jq("input[name='yuyueshijian']").val(date);
+	jq("input[name='dateType']").val(type);
+	refreshOrderComment();
+}
+ 
+function getTourYuStockListByMonth(){
+	
+	jq.ajax({
+        type: "POST",
+        url: "/product/product_getChaoyangYuYueByParam.action",
+        dataType: "json",
+        success: function(json){
+        	
+        	var stl = "<table>";
+        	stl += "<thead>";
+        	stl += "<tr>";
+        	stl += "<th><div class=\"weekend\">日</div></th>";
+        	stl += "<th><div class=\"weekday\">一</div></th>";
+        	stl += "<th><div class=\"weekday\">二</div></th>";
+        	stl += "<th><div class=\"weekday\">三</div></th>";
+        	stl += "<th><div class=\"weekday\">四</div></th>";
+        	stl += "<th><div class=\"weekday\">五</div></th>";
+        	stl += "<th><div class=\"weekend\">六</div></th>";
+        	stl += "</tr>";
+        	stl += "</thead>";
+        	stl += "<tbody>";
+        	
+        	//补全第一行不齐的
+        	
+        	var currWeek = new Date().getDay();
+        	var currDate = new Date().getDate();
+        	var currYear = new Date().getFullYear();
+        	var currMonth = new Date().getMonth()+1;
+        	var lastMaxDay = new Date(new Date().getFullYear(),new Date().getMonth(),0).getDate();
+        	var currMaxDay = new Date(new Date().getFullYear(),new Date().getMonth()+1,0).getDate();
+        	//其实号数
+        	var startDate =  currDate - currWeek > 0 ? currDate - currWeek:lastMaxDay+currDate - currWeek;
+        	
+        	var showMobth = "";
+        	var showDate = "";
+        	var showYear = currYear;
+        	
+        	for(var i = 0;i<4;i++){
+        		stl += "<tr>";	
+        		for(var k = 0;k<7;k++){
+        			
+        			if(currDate - currWeek > 0){
+        				if(startDate+k+i*7<=currMaxDay){
+        					showMobth = currMonth;
+        					showDate = startDate+k+i*7;
+        				}
+        				else{
+        					if(currMonth==12){
+        						showMobth = 1;
+        						showYear = currYear + 1;
+        					}else{
+        						showMobth = currMonth+1;
+        					}
+        					showDate = startDate+k+i*7-currMaxDay;
+        				}
+        			}
+        			else{
+        				if(startDate+k+i*7<=lastMaxDay){
+        					showMobth = currMonth - 1;
+        					showDate = startDate+k+i*7;
+        				}else{
+        					showMobth = currMonth;
+        					showDate = startDate+k+i*7-lastMaxDay;
+        				}
+        			}
+        			
+        			var checkedate = showYear+"-"+(showMobth<10?"0"+showMobth:showMobth)+"-"+(showDate<10?"0"+showDate:showDate);
+        			var lastQty = selectDateLast01(json,checkedate);
+        			
+        			if(lastQty==-1){
+        				stl += "<td om='true'><div class='disable om'>"+showMobth+"月"+showDate+"日"+
+	        			"<p class='price'>不可预约</p></div></td>";
+        			}
+        			else if(lastQty==0){
+        				stl += "<td om='true'><div class='disable om'>"+showMobth+"月"+showDate+"日"+
+	        			"<p class='price' style='color:red;'>没号了</p></div></td>";
+        			}
+        			else{
+        				stl += "<td om='true'><div onclick='selectOutDate(this,\""+checkedate+"\",\"上午\")' class='holiday normal'>"+showMobth+"月"+showDate+"日"+
+	        			"<p class='price' style='color:#2a7e4e;'>剩余:"+lastQty+"</p></div></td>";
+        			}
+        			
+        		}
+        		stl += "</tr>";	
+        	}
+        	
+        	jq("#dayArr_div_01").html(stl);
+        	
+        	
+        	stl = "<table>";
+        	stl += "<thead>";
+        	stl += "<tr>";
+        	stl += "<th><div class=\"weekend\">日</div></th>";
+        	stl += "<th><div class=\"weekday\">一</div></th>";
+        	stl += "<th><div class=\"weekday\">二</div></th>";
+        	stl += "<th><div class=\"weekday\">三</div></th>";
+        	stl += "<th><div class=\"weekday\">四</div></th>";
+        	stl += "<th><div class=\"weekday\">五</div></th>";
+        	stl += "<th><div class=\"weekend\">六</div></th>";
+        	stl += "</tr>";
+        	stl += "</thead>";
+        	stl += "<tbody>";
+        	
+        	showYear = currYear;
+        	
+        	for(var i = 0;i<4;i++){
+        		stl += "<tr>";	
+        		for(var k = 0;k<7;k++){
+        			
+        			if(currDate - currWeek > 0){
+        				if(startDate+k+i*7<=currMaxDay){
+        					showMobth = currMonth;
+        					showDate = startDate+k+i*7;
+        				}
+        				else{
+        					if(currMonth==12){
+        						showMobth = 1;
+        						showYear = currYear + 1;
+        					}else{
+        						showMobth = currMonth+1;
+        					}
+        					showDate = startDate+k+i*7-currMaxDay;
+        				}
+        			}
+        			else{
+        				if(startDate+k+i*7<=lastMaxDay){
+        					showMobth = currMonth - 1;
+        					showDate = startDate+k+i*7;
+        				}else{
+        					showMobth = currMonth;
+        					showDate = startDate+k+i*7-lastMaxDay;
+        				}
+        			}
+        			
+        			var checkedate = showYear+"-"+(showMobth<10?"0"+showMobth:showMobth)+"-"+(showDate<10?"0"+showDate:showDate);
+        			var lastQty = selectDateLast02(json,checkedate);
+        			
+        			if(lastQty==-1){
+        				stl += "<td om='true'><div class='disable om'>"+showMobth+"月"+showDate+"日"+
+	        			"<p class='price'>不可预约</p></div></td>";
+        			}
+        			else if(lastQty==0){
+        				stl += "<td om='true'><div class='disable om'>"+showMobth+"月"+showDate+"日"+
+	        			"<p class='price' style='color:red;'>没号了</p></div></td>";
+        			}
+        			else{
+        				stl += "<td om='true'><div onclick='selectOutDate(this,\""+checkedate+"\",\"下午\")' class='holiday normal'>"+showMobth+"月"+showDate+"日"+
+	        			"<p class='price' style='color:#2a7e4e;'>剩余:"+lastQty+"</p></div></td>";
+        			}
+        		}
+        		stl += "</tr>";	
+        	}
+        	
+        	jq("#dayArr_div_02").html(stl);
+        }
+   });
+}
+ 
+//获取配送方式
+function getInfo(){
+	  var type=jq("input[name='svpdUpLoadType']");
+	  for(var i=0;i<type.length;i++)
+	  {
+		  if(jq("#svpdUpLoadType"+i).val()==1&&jq("#svpdUpLoadTypeDetail"+i).val()==1)
+		  {
+			  jq("#dinfo1").show();
+			  jq("#dinfo2").show();
+			  jq("#dinfo3").show();
+			  jq("#dinfo4").show();
+		  }
+	  }
+}
+//可选择的收货地址
+function getUserPostAddressList(){
+	jq.ajax({
+         type: "POST",
+         url: "/product/product_getUserPostAddress.action",
+         dataType: "html",
+         success: function(data){
+       	     jq("#user_address_div").html(data);
+         }
+     });
+}
+
+//添加可收货地址
+function showAddPostAddress(){
+	jq("#add_postAddress_table").css("display","");
+	jq(".add_postAddress_a").css("display","none");
+}
+//隐藏收货信息
+function noneAddPostAddress(){
+	jq("#add_postAddress_table").css("display","none");
+	jq(".add_postAddress_a").css("display","");
+}
+//可支付账户
+function getUserPayAccountList(){
+	var code=document.getElementsByName("spvdCode");
+	var category=document.getElementsByName("svpdDetailCategory");
+	var spvdCode="";
+	for(var i=0;i<code.length;i++){
+		  spvdCode+=code[i].value+",";
+	}
+    var svpdDetailCategory="";
+    for(var i=0;i<category.length;i++){
+		  svpdDetailCategory+=category[i].value+",";
+	}
+	jq.ajax({
+         type: "POST",
+         url: "/order/order_getUserPayAccountList.action",
+         data: "spvdCode="+spvdCode+"&svpdDetailCategory="+svpdDetailCategory,
+         dataType: "html",
+         success: function(data){
+       	     jq("#pay_account_list").html(data);
+         }
+     });
+}
+
+//变更收货地址
+function changePostAddress(postType){
+	jq("#post_"+postType+"_span").html(jq("#post_"+postType+"_input").val());
+}
+function checkAllProduct() {
+   jq("input[name='checkBoxProduct']").attr("checked",jq("#checkBoxAll").attr("checked"));
+};
+//修改商品数量
+function changeProductNum(svpdId,colorId,sizeId,addNum,price){
+	var old=parseInt(jq("#cart_num_"+svpdId+"_"+colorId+"_"+sizeId).val());
+	if(old==""||old+addNum<1){
+		return;
+	}
+	jq.ajax({
+         type: "POST",
+         url: "/product/product_changeProductNum.action",
+         data: "svpdId="+svpdId+"&colorId="+colorId+"&sizeId="+sizeId+"&buyNum="+(old+addNum),
+         dataType: "html",
+         success: function(data){
+        	 if(data.split(',')[0]=="1"){
+        		 jq("#cart_num_"+svpdId+"_"+colorId+"_"+sizeId).val(old+addNum);
+  	    	     jq("#product_total_num").html(data.split(',')[1]);
+  	    	     jq("#product_total_price").html(data.split(',')[2]);
+        	     jq("#post_price_value").html(data.split(',')[3]);
+        	     if(!jq("#buyToCompany").attr("checked")){
+        	    	 jq("#payTatolPrice").html(parseInt(data.split(',')[2])+parseInt(data.split(',')[3]));
+        	     }else{
+        	    	 jq("#payTatolPrice").html(data.split(',')[2]);
+        	     }
+        	     jq("#hidden_num_"+svpdId+"_"+colorId+"_"+sizeId).val(old+addNum);
+        	 } 
+         }
+    });
+}
+//删除购物车中某种商品
+function delProductByIds(svpdIds){
+	if(!confirm("确定要从购物车中删除此礼品？！")){
+		return;
+	}
+	
+	jq.ajax({
+         type: "POST",
+         url: "/order/order_delCartProductByIds.action",
+         data: "svpdIds="+svpdIds,
+         dataType: "html",
+         success: function(data){
+       	     if(data==1){
+       	    	 go("/product/product_toOrderTSApply.action");
+       	     }
+         }
+    });
+}
+
+//删除所有勾选的礼品
+function delAllCheckProduct(){
+	var checkArr=jq("input:checkbox[name='checkBoxProduct']:checked");
+	if (checkArr.length > 0) {
+		var ids=jq(checkArr[0]).val();
+		for(var i=1;i<checkArr.length;i++){
+			ids+=","+jq(checkArr[i]).val();
+		}
+		delProductByIds(ids);
+	}else{
+		alert("请选择一行进行操作！");
+	}			
+}
+
+//获取当前用户的配送地址
+function getUserPostAddress(type){
+
+	if(type==0){
+		jq("#post_type_mail").css("display","none");
+		jq("#post_price").css("display","none");
+		jq("#payTatolPrice").html(jq("#product_total_price").html());
+		jq("#post_type_status").css("display","");
+		jq("#post_type_address").css("display","none");
+		jq("#post_type_user").css("display","none");
+		jq("#post_type_stat").css("display","");
+	}
+	else{
+		jq("#post_type_mail").css("display","");
+		jq("#post_price").css("display","");
+		jq("#payTatolPrice").html(parseInt(jq("#product_total_price").html())+parseInt(jq("#post_price_value").html()));
+		jq("#post_type_status").css("display","none");
+		jq("#post_type_address").css("display","");
+		jq("#post_type_user").css("display","");
+		jq("#post_type_stat").css("display","none");
+	}
+	
+	//更改订单的邮寄方式
+	jq.ajax({
+         type: "POST",
+         url: "/order/order_changePostType.action",
+         data: "post_type="+type,
+         dataType: "html",
+         success: function(data){
+        	 
+         }
+    });
+}
+
+//更换选择人收货地址
+function changePostAddress(addressId){
+	
+	jq(".user_address_select").attr("class","user_address_item");
+	
+	jq("#user_address_item_"+addressId).attr("class","user_address_select");
+	jq("#user_address_radio_"+addressId).attr("checked",true);
+	
+	jq("#post_user_input").val(jq("#post_user_change_span_"+addressId).html());
+	jq("#post_phone_input").val(jq("#post_phone_code_change_span_"+addressId).html());
+	jq("#post_tel_input").val(jq("#post_tel_change_span_"+addressId).html());
+	jq("#post_uid_input").val(jq("#post_uid_change_span_"+addressId).html());
+	jq("#post_code_input").val(jq("#post_code_change_span_"+addressId).html());
+	jq("#post_address_input").val(jq("#user_post_district").val()+jq("#post_address_change_span_"+addressId).html());
+	jq("#user_post_district").val(jq("#post_district_change_span_"+addressId).html());
+	//jq("#edit_post_address_district").html(jq("#user_post_district").val());
+	
+}
+
+//选择快递方式
+function changePostPrice(price){
+	jq('#post_price').html(price);
+}
+//提交配送方式
+function submitPostAddress(){
+	
+	var inputArr = jq("#p_uncheck_").find("input");
+	for(var i= 0;i<inputArr.length;i++){
+		if(jq(inputArr[i]).val()==""){
+			alert("请填写完整缴税相关信息！");
+			return;
+		}
+	}
+	
+	
+    // 备注校验 
+    var PingLun = jq("#eoContent").val();
+     
+      if(PingLun==""){
+          alert("* 备注不能为空，请认真填写！"); 
+          return false;
+         
+      }
+      if(PingLun=="请根据产品要求进行填写，如无必须内容请填写无."){
+       alert("* 备注格式不正确,请认真填写！"); 
+          return false;
+      }
+	if(jq("#radio_select_mail").attr("checked")==true){
+		if(jq("#user_edit_address_div").css("display")=="block"){
+			alert("请您先保存收货地址信息！");
+			return;
+		}
+	}
+	
+  	jq("#order_apply_action").css("display","none");
+  	jq("#order_apply_title").css("display","block");
+	jq.ajax({
+		  type: "POST",
+          url:"/order/order_payOrderTSByAccount.action",
+          data: jq('#post_type_form').formSerialize(),
+          success:function(data){
+        	  if(data==1){
+             	 go("/order/order_toOrderTSSuccsss.action");
+              }
+              else{
+            	  if(data==2){
+  	            	 alert("每次只能购买一个礼品！");
+  	             }
+             	  if(data==3){
+ 	            	 alert("请选择支付账户！");
+ 	             }
+ 	             else if(data==4){
+ 	            	 alert("账户余额不足，无法提交订单！");
+ 	             }
+ 	             else if(data==5){
+ 	            	 alert("订单提交失败，请至少选择一件礼品！");
+ 	            	 go("/product/product_toOrderTSApply.action");
+ 	             }
+             	 else if(data==6){
+ 	            	 alert("区域礼品不能使用个人账户支付，请选择公共账户！");
+ 	             }
+             	 else if(data==7){
+ 	            	 alert("个人礼品不能使用公共账户支付，请选择个人账户！");
+ 	             }else if(data==8){
+ 	            	 alert("专属账户只能对专属礼品支付！");
+ 	             }
+             	 else if(data==9){
+ 	            	 alert("营销工具账户只能对营销工具礼品支付！");
+ 	             }
+             	 else if(data==10){
+ 	            	 alert("招聘支持账户只能对招聘支持礼品支付！");
+ 	             }
+             	else if(data==11){
+	            	 alert("库存不足，请预约其他日期！");
+	             }
+             	 else{
+ 	            	 alert(jq("#"+data).val()+"  库存不足，请减少数量或选择其他礼品！");
+ 	             }
+             	  jq("#order_apply_action").css("display","");
+ 	              jq("#order_apply_title").css("display","none");
+              }
+          }
+     });
+}
+
+//保存收货人地址
+function saveUserPostAddress(){
+	var postName=jq("#post_user_input").val().replace(/[ ]/g,"");
+	if(postName==""||postName.length>5){
+		jq("#post_user_notice_span").css("display","");
+		return;
+	}
+	
+	var postPhone=jq("#post_phone_input").val().replace(/[ ]/g,"");
+	var phoneexg = /^1\d{10}$/;
+	if(postPhone==""||!phoneexg.test(postPhone)){
+		jq("#post_phone_notice_span").css("display","");
+		return;
+	}
+	
+	var postTel=jq("#post_tel_input").val().replace(/[ ]/g,"");
+	var telexg = /^\d{8}$/;
+	if(postTel!=""&&!telexg.test(postTel)){
+		jq("#post_tel_notice_span").css("display","");
+		return;
+	}
+	
+	var postCode=jq("#post_code_input").val().replace(/[ ]/g,"");
+	var codeexg = /^10\d{4}$/;
+	if("北京市"=="天津市"){
+		codeexg = /^30\d{4}$/;
+	}
+	else if("北京市"=="大连市"){
+		codeexg = /^116\d{3}$/;
+	}
+	else if("北京市"=="南京市"){
+		codeexg = /^21\d{4}$/;
+	}
+	else if("北京市"=="成都市"){
+		codeexg = /^61\d{4}$/;
+	}
+	else if("北京市"=="青岛市"){
+		codeexg = /^266\d{3}$/;
+	}
+	else if("北京市"=="上海市"){
+		codeexg = /^20\d{4}$/;
+	}
+	else if("北京市"=="杭州市"){
+		codeexg = /^31\d{4}$/;
+	}
+	else if("北京市"=="河北省  廊坊市"){
+		codeexg = /^065\d{3}$/;
+	}
+	else if("北京市"=="江苏省  苏州市"){
+		codeexg = /^215\d{3}$/;
+	}
+	else if("北京市"=="重庆市"){
+		codeexg = /^40\d{4}$/;
+	}
+	else if("北京市"=="厦门市"){
+		codeexg = /^36\d{4}$/;
+	}
+	else if("北京市"=="深圳市"){
+		codeexg = /^51\d{4}$/;
+	}
+	if(postCode==""||!codeexg.test(postCode)){
+		jq("#post_code_notice_span").css("display","");
+		return;
+	}
+	
+	var postAdress=jq("#post_address_input").val();
+	var addressexg=/.*[\u4e00-\u9fa5]+.*$/;
+	if(postAdress==""||!addressexg.test(postAdress)){
+		jq("#post_address_notice_span").css("display","");
+		return;
+	}
+	
+	var postDistrict=jq("#user_post_district").val();
+
+	//保存收货地址
+	jq.ajax({
+         type: "POST",
+         url: "/product/product_saveUserPostAddress.action",
+         data: "postName="+postName+"&postPhone="+postPhone+"&postTel="+postTel+
+               "&postCode="+postCode+"&postAdress="+postAdress+"&postDistrict="+postDistrict,
+         dataType: "html",
+         success: function(data){
+        	 if(data==1){
+        		 getUserPostAddressList();
+        	 }
+        	 else if(data==2){
+        		 alert("您当前已经存在了一个相同收货人姓名且相同收货地址的记录，不需要重复增加！");
+        	 }
+         }
+    });
+}
+//消除输入框的显示
+function refresh_input(checkName){
+	jq("#post_"+checkName+"_notice_span").css("display","none");
+}
+
+//验证输入的文本框
+function check_input_text(checkName){
+	var checkValue=jq("#post_"+checkName+"_input").val().replace(/[ ]/g,"");
+	if(checkName=="user"){
+		var userexg=/^[\u4e00-\u9fa5]+$/;
+		if(checkValue==""||!userexg.test(checkValue)||checkValue.length>10){
+			jq("#post_user_notice_span").css("display","");
+			return;
+		}
+	}
+	else if(checkName=="phone"){
+		var phoneexg = /^1\d{10}$/;
+		if(checkValue==""||!phoneexg.test(checkValue)){
+			jq("#post_phone_notice_span").css("display","");
+			return;
+		}
+		jq("#post_phone_span").html(jq("#post_phone_input").val());
+	}
+
+	else if(checkName=="address"){
+		var addressexg=/.*[\u4e00-\u9fa5]+.*$/;
+	    if(checkValue==""||!addressexg.test(checkValue)){
+			jq("#post_address_notice_span").css("display","");
+			return;
+		}
+	}
+	else{
+		var telexg = /^\d{8}$/;
+		if(checkValue!=""&&!telexg.test(checkValue)){
+			jq("#post_tel_notice_span").css("display","");
+			return;
+		}
+	}
+}
+//删除常用地址
+function delUserPostAddress(addressId){
+	
+	if (!confirm("确定需要删除该地址？"))
+		return;
+	
+	//保存收货地址
+	jq.ajax({
+         type: "POST",
+         url: "/product/product_delUserPostAddress.action",
+         data: "addressId="+addressId,
+         dataType: "html",
+         success: function(data){
+        	 if(data==1){
+        		 getUserPostAddressList();
+        	 }
+         }
+    });
+}
+
+//修改收货地址
+function showEditPostAddress(showType){
+	if(showType==1){
+		//显示修改页面
+		jq("#showTableUserAddress").css("display","none");
+		jq("#post_edit_show").css("display","none");
+		jq("#post_edit_none").css("display","");
+		jq("#user_edit_address_div").css("display","");
+    	
+	}else{
+		jq("#showTableUserAddress").css("display","");
+		jq("#post_edit_show").css("display","");
+		jq("#post_edit_none").css("display","none");
+		jq("#user_edit_address_div").css("display","none");
+	}
+}
+
+//保存收货地址到购物车
+function saveOrderPostAddress(){
+	var postName=jq("#post_user_input").val().replace(/[ ]/g,"");
+	var userexg=/^[\u4e00-\u9fa5]+$/;
+	if(postName==""||!userexg.test(postName)||postName.length>10){
+		jq("#post_user_notice_span").css("display","");
+		return;
+	}
+	
+	var postPhone=jq("#post_phone_input").val().replace(/[ ]/g,"");
+	var phoneexg = /^1\d{10}$/;
+	if(postPhone==""||!phoneexg.test(postPhone)){
+		jq("#post_phone_notice_span").css("display","");
+		return;
+	}
+	var postTel=jq("#post_tel_input").val().replace(/[ ]/g,"");
+	var telexg = /^\d{8}$/;
+	if(postTel!=""&&!telexg.test(postTel)){
+		jq("#post_tel_notice_span").css("display","");
+		return;
+	}
+	
+	var postCode=jq("#post_code_input").val().replace(/[ ]/g,"");
+	var codeexg = /^10\d{4}$/;
+	if("北京市"=="天津市"){
+		codeexg = /^30\d{4}$/;
+	}
+	else if("北京市"=="大连市"){
+		codeexg = /^116\d{3}$/;
+	}
+	else if("北京市"=="南京市"){
+		codeexg = /^21\d{4}$/;
+	}
+	else if("北京市"=="成都市"){
+		codeexg = /^61\d{4}$/;
+	}
+	else if("北京市"=="青岛市"){
+		codeexg = /^266\d{3}$/;
+	}
+	else if("北京市"=="上海市"){
+		codeexg = /^20\d{4}$/;
+	}
+	else if("北京市"=="杭州市"){
+			codeexg = /^31\d{4}$/;
+	}
+	else if("北京市"=="河北省  廊坊市"){
+		codeexg = /^065\d{3}$/;
+	}
+	else if("北京市"=="江苏省  苏州市"){
+		codeexg = /^215\d{3}$/;
+	}
+	else if("北京市"=="重庆市"){
+		codeexg = /^40\d{4}$/;
+	}
+	else if("北京市"=="厦门市"){
+		codeexg = /^36\d{4}$/;
+	}
+	else if("北京市"=="深圳市"){
+		codeexg = /^51\d{4}$/;
+	}
+	if(postCode==""||!codeexg.test(postCode)){
+		jq("#post_code_notice_span").css("display","");
+		return;
+	}
+	
+	var postAdress=jq("#post_address_input").val();
+	var addressexg=/.*[\u4e00-\u9fa5]+.*$/;
+	if(postAdress==""||!addressexg.test(postAdress)){
+		jq("#post_address_notice_span").css("display","");
+		return;
+	}
+	var postDistrict=jq("#user_post_district").val();
+	var uid=jq("#tsuserid").val();
+	//保存订单收货地址
+	jq.ajax({
+         type: "POST",
+         url: "/product/product_saveOrderPostAddress.action",
+         data: "postName="+postName+"&postPhone="+postPhone+"&postTel="+postTel+
+               "&postCode="+postCode+"&postAdress="+postAdress+"&postDistrict="+postDistrict,
+         dataType: "html",
+         success: function(data){
+        	 if(data==1){
+        		 jq("#td_post_user_address").html(postName);
+        		 jq("#td_post_phone_address").html(postPhone);
+        		 jq("#td_post_tel_address").html(postTel);
+        		 jq("#td_post_code_address").html(postCode);
+        		 jq("#td_uid_address_address").html(uid);
+        		 jq("#td_post_address_address").html("北京市&nbsp;&nbsp;"+postDistrict+"&nbsp;&nbsp;"+postAdress);
+        		 jq("#td_post_district_address").html("北京市&nbsp;&nbsp;"+postDistrict);
+        		 jq("#user_edit_address_div").css("display","none");
+        		 jq("#showTableUserAddress").css("display","");
+        		 jq("#post_edit_show").css("display","");
+		         jq("#post_edit_none").css("display","none");
+		                 	 
+        	     jq("#post_address_span").html("北京市&nbsp;&nbsp;"+postDistrict+"&nbsp;&nbsp;"+postAdress);
+			     jq("#post_code_span").html(postCode);
+			     jq("#post_user_span").html(postName);
+			     jq("#post_phone_span").html(postPhone+"&nbsp;&nbsp;"+postTel);
+        	 }
+         }
+    });
+}
+
+//改变收货区域
+function post_district_change(){
+	jq("#edit_post_address_district").html(jq("#user_post_district").val());
+}
+
+//修改购物车数量
+function checkProductBuyNum(svpdId,colorId,sizeId){
+	var checkNum=jq("#cart_num_"+svpdId+"_"+colorId+"_"+sizeId).val();
+	var telexg = /^\d+$/;     
+	if(checkNum==""||!telexg.test(checkNum)||parseInt(checkNum)<=0){
+		jq("#cart_num_"+svpdId+"_"+colorId+"_"+sizeId).val(jq("#hidden_num_"+svpdId+"_"+colorId+"_"+sizeId).val());
+	    return;
+	}
+	
+	jq.ajax({
+         type: "POST",
+         url: "/product/product_changeProductNum.action",
+         data: "svpdId="+svpdId+"&colorId="+colorId+"&sizeId="+sizeId+"&buyNum="+checkNum,
+         dataType: "html",
+         success: function(data){	
+        	 if(data.split(',')[0]=="1"){
+        		 jq("#cart_num_"+svpdId+"_"+colorId+"_"+sizeId).val(checkNum);
+  	    	     jq("#product_total_num").html(data.split(',')[1]);
+  	    	     jq("#product_total_price").html(data.split(',')[2]);
+        	     jq("#post_price_value").html(data.split(',')[3]);
+        	     if(!jq("#buyToCompany").attr("checked")){
+        	    	 jq("#payTatolPrice").html(parseInt(data.split(',')[2])+parseInt(data.split(',')[3]));
+        	     }else{
+        	    	 jq("#payTatolPrice").html(data.split(',')[2]);
+        	     }
+        	     jq("#hidden_num_"+svpdId+"_"+colorId+"_"+sizeId).val(checkNum);
+        	 } 
+         }
+    });
+}
+
+function refreshOrderComment(){
+	var inputArr = jq("#p_uncheck_").find("input");
+	
+	var jiaoStr = "网签合同号："+jq(inputArr[0]).val()+",";
+	jiaoStr += "客户姓名："+jq(inputArr[1]).val()+",";
+	jiaoStr += "客户身份证号："+jq(inputArr[2]).val()+",";
+	jiaoStr += "过户专员："+jq(inputArr[3]).val()+",";
+	jiaoStr += "预约时间："+jq(inputArr[4]).val()+","+jq(inputArr[5]).val();
+     
+	jq("#eoContent").val(jiaoStr);
+
+}
+
+function clearYangInput(obj){
+	if(jq(obj).val()==jq(obj).attr("title")){
+		jq(obj).val("");
+		jq(obj).css("color","black");
+		jq(obj).css("font-size","12px");
+	}
+}
+
+function uploadYangchanImg(obj,inputName){
+	
+	jq(obj).parent().parent().ajaxSubmit({ 
+		url:"/upload/upload_uploadImgYangchan.action",
+		dataType:"html",
+		success: function(jsonObject){  
+            if(jsonObject!=""){
+            	jq(obj).parent().css("background","url('/themes/images/201505120000001.png')");
+            	jq(obj).parent().attr("href","/upload/yangchan/"+jsonObject);
+            	jq(obj).parent().attr("target","_blank");
+            	jq(obj).parent().parent().append("<a onclick=\"deleteImg(this,'"+inputName+"')\">删除&nbsp;&nbsp;&nbsp;&nbsp;</a>");
+            	
+            	reshInput(jq(obj).parent().parent().parent().find("a"),
+            			  jq.find("input[name='"+inputName+"']"));
+            	
+            	jq(obj).remove();
+            }
+        }
+    });
+}
+function reshInput(inputArr,inputObj){
+	var hiddenstr = ""
+   	for(var i = 0;i<inputArr.length;i++){
+   		if(typeof(jq(inputArr[i]).attr("href"))!="undefined"){
+   			hiddenstr+=(hiddenstr==""?"":",")+jq(inputArr[i]).attr("href");
+   		}
+   	}
+	jq(inputObj).val(hiddenstr);
+}
+function deleteImg(obj,inputName){
+	jq(obj).parent().find(".file_a").css("background","url('/themes/images/20150510003231.png')");
+	jq(obj).parent().find(".file_a").removeAttr("href");
+	jq(obj).parent().find(".file_a").removeAttr("target");
+	jq(obj).parent().find(".file_a").html("<input class=\"file_file\" type=\"file\" onchange=\"uploadYangchanImg(this,'"+inputName+"');\" name=\"fileInput\">");
+	
+	reshInput(jq(obj).parent().parent().find("a"),
+			  jq(obj).parent().parent().find("input[name='"+inputName+"']"));
+	
+	jq(obj).remove();
+}
+</script>
+
+		<style >
+			.sidebar_item {
+		    height: 304px;
+		}
+		.sidebar_item .category_item_hover .i-mc {
+		    top: 5px;
+		    width:330px;
+		    height:auto;
+		    padding-bottom:15px;
+		    z-index:-1;
+		}
+		.model_talk_div {
+		    border-radius: 4px;
+		    height: 256px;
+		    margin: 200px auto auto;
+		    position: fixed;
+		    width: 316px;
+		}
+		</style>
+		<!-- -->
+		<script type="text/javascript">
+		//加载未读取的系统消息
+		function getServerNoRead(){
+			jq.getJSON("http://talkserver.homelink.com.cn/talk/getServerNoRead.action?serverId=20201141",
+		        function(data){
+					if(data=="1"){
+						window.haveNoRead = 1;
+					}else{
+						window.haveNoRead = 0;
+					}
+		        });
+		}
+		
+		function timeAdd(){
+			window.timeCurr ++;
+			if(window.timeCurr%2==0){
+				if(window.haveNoRead==1){
+					jq("#model_talk_div_server").attr("src","/themes/images/serverHide.png");
+				}else{
+					jq("#model_talk_div_server").attr("src","/themes/images/server.gif");
+				}
+			}else{
+				jq("#model_talk_div_server").attr("src","/themes/images/server.gif");
+			}
+			
+		}
+		jq(document).ready(function() {
+					
+			
+		});
+		</script>
+		
+    </head>
+    <body>
+	    
+
+
+
+<!DOCTYPE html>
+	<head>
+		<meta charset="utf-8">
+		<title>加油站首页</title>
+		<link rel="stylesheet" type="text/css" href="/index_new/css/index.css" />
+		<script type="text/javascript" src="/index_new/js/map.js" ></script>
+		<style type="text/css">
+		/* HTML5 display-role reset for older browsers */
+		article, aside, details, figcaption, figure, 
+		footer, header, hgroup, menu, nav, section {
+			display: block;
+		}
+		body {
+			line-height: 1;
+		}
+		ol, ul {
+			list-style: none;
+		}
+		blockquote, q {
+			quotes: none;
+		}
+		blockquote:before, blockquote:after,
+		q:before, q:after {
+			content: '';
+			content: none;
+		}
+		table {
+			border-collapse: collapse;
+			border-spacing: 0;
+		}
+		/* add */
+		body {font-size:12px;}
+		img{border:0}
+		.index_top h1,h2,h3,h4,h5,h6{font-size:100%;font-weight:normal;}
+		select,input{vertical-align:middle;padding:0;}
+		.clearfix { zoom:1; }
+		.clearfix:after { content:""; display:block; clear:both; height:0; }
+		.spacer{clear:both; font-size:0; height:0; line-height:0;}
+		a{color:#333;text-decoration:none;cursor: pointer;}
+		a:hover{color:#333;text-decoration:none;cursor: pointer;}
+		i,em{ font-style: normal;}
+		
+		/*
+		购物车高度变小处理
+		*/
+		.index_nav p {
+			height:38px;
+		}
+		/*
+		菜单默认背景色
+		*/
+		.index_banner .left li{
+			background-color:white;
+		}
+		/*
+		菜单选中背景色
+		*/
+		.index_banner .left li.active{
+			border-top:1px solid #e2e2e2;
+			border-bottom:1px solid #e2e2e2;
+			border-right:1px solid #fff;
+			background-color:#51AE79;
+		}
+		</style>
+		<script type="text/javascript">
+		var productCategoryMap = new Map();//左侧子分类缓存
+		//加载未读取的系统消息
+		jq(document).ready(function() {
+			//	logo头部
+			jq('.top_search label').click(function(){
+				jq(this).hide();
+				jq('.top_search .search').show();
+			});
+			jq('.top_search .search').blur(function(){ 
+				if( jq(this).val() == '' ){
+					jq('.top_search label').show();
+				}
+			});//	logo头部
+			
+			jq('.suona_con').hover(function(){
+				jq(this).css("height","84px");
+				jq(this).append("<i class="+"fold"+"></i>");
+			}).mouseleave(function(){
+				jq(this).css("height","30px");
+				jq(this).find("i").remove(".fold");
+				
+			});
+			
+//			导航下的菜单
+			jq('.nav_all').hover(function(){
+				jq('.index_banner').show();
+			});
+			jq('.index_banner').hover(function(){
+				jq('.index_banner').show();
+			});
+			jq('.nav_all').mouseleave(function(){
+				jq('.index_banner').hide();
+			});
+			jq('.index_banner').mouseleave(function(){
+				jq('.index_banner').hide();
+			});
+			//	导航下的菜单	
+			jq('.index_banner .left li').hover(function(){
+				jq(this).addClass('active').siblings().removeClass('active');
+				//显示li下所有的箭头
+				showLiAllSpan();
+				jq(jq(this).find("a>span")[0]).css("color","#fff");//白色
+				//TODO 异步加载三级分类数据
+				getProductCategoryList(this);
+				jq('.line_float').show();
+			});
+			jq('.index_banner .left').mouseleave(function(){
+				jq(".line_float").hide();
+				jq('.index_banner .left li').removeClass('active');
+				showLiAllSpan();
+				jq('.index_banner').hide();
+			});
+			//控制箭头显示
+			function showLiAllSpan(){
+				var spanObj = jq('.index_banner .left li a span');
+				for(var i = 0,spanlen = spanObj.length;i<spanlen;i++){
+					jq(spanObj[i]).css("color","#2A7E4E");//默认箭头色
+				}
+			}
+			jq('.line_float p:last-child').css('border-bottom','none');
+			
+			//未读消息
+			jq.ajax({
+				type:"post",
+				url:"/message/message_getNoReadMessageCount.action",
+				dataType:"json",
+				success : function(data, textStatus, xhr) {
+					jq("#msgCount").html(data);
+				}
+				
+			});
+			
+			//我的账户
+			jq.ajax({
+				type:"post",
+				url:"/points/points_publicTopmyCenter.action",
+				dataType:"json",
+				success : function(data, textStatus, xhr) {
+						jq("#myCount").html(data);
+				}
+			});
+			
+			//首页公告
+			jq.ajax({
+				type:"post",
+				url:"/helpinfo/helpinfo_getNoticeTopByAjax.action",
+				dataType:"json",
+				success : function(data) {
+					var html ="";
+					for(var i = 0;i<data.length;i++){
+						html +="<li style='overflow: hidden;height:28px;display:inline-block;'><a style='height:28px;display:inline-block;' href='/helpinfo/helpinfo_getSyhelpinfoPath.action?id="+data[i].SYHI_ID+"&flag="+data[i].SYHI_TYPE+"' title='"+data[i].SYHI_TITLE+"'>"+data[i].SYHI_TITLE+"</a></li>";
+					}
+					
+					if(html!=""){
+						jq("#ul_NoticeTop").html(html);
+					}
+				}
+			});
+		});
+		/**
+		 * li对象获得子分类父类编码
+		 */
+		function getParentCode(obj){
+			var parentCode;
+			var aObj = jq(obj).find("a");
+			if(aObj.length > 0){
+				var href = jq(aObj[0]).attr("href");
+				if(href){
+					var args = href.split("?")[1];
+					parentCode = args.split("=")[1];
+				}
+			}
+			return parentCode;
+		}
+		
+		/**
+		初始化分类集合信息
+		*/
+		function initProductCategoryListHtml(categoryArray){
+			var categoryListHtml="";
+			if(categoryArray.length > 0){
+				categoryListHtml += "<p>";
+				for(var i = 1,len = categoryArray.length;i<=len;i++){
+					categoryListHtml += categoryArray[i-1];
+					//最后一个元素
+					if(i == len){
+						categoryListHtml += "</p>";
+					}else{
+						//非最后一个元素
+						if(i%5 == 0){
+						//每4个一组
+							categoryListHtml += "</p>";
+							categoryListHtml += "<p>";//下组开始
+						}
+					}
+				}
+			}
+			jq('.line_float').eq(0).html(categoryListHtml);
+		}
+		/**
+		异步获得line_float分类
+		*/
+		function getProductCategoryList(obj){
+			var parentCode = getParentCode(obj);
+			if(parentCode){
+				var categoryArrayCache = productCategoryMap.get(parentCode);//获得换存分类集合
+				if(null != categoryArrayCache && categoryArrayCache.length > 0){
+					initProductCategoryListHtml(categoryArrayCache);
+				}else{
+					var url = "/indexnew/getProductCategoryList.action";
+				   	jq.ajax({
+	                    type: "POST",
+	                    url: url,
+	                    data: {parentCode:parentCode},
+	                    dataType: 'json',
+	                    success: function(result) {
+							var categoryArray = new Array();
+							 jq(result).each(function(index) {
+							 	categoryArray.push("<a href='/product/product_searchProducts.action?categroy="+this.PC_CATEGROY_CODE+"'>"+this.PC_CATETORY_NAME+"</a>");
+	                         }); 
+	                         productCategoryMap.put(parentCode,categoryArray);
+	                         initProductCategoryListHtml(categoryArray);
+	                    }
+	                });
+				}
+			}
+		}
+	</script>
+	</head>
+	<body>
+		<div class="index_top">
+			<div class="wrapper">
+				<ul>
+					<li><a class="bl_n"><span>蔡宁莉</span>欢迎来到链家加油站！</a></li>
+					<li><a href="/message/message_messageView.action"><i>新消息</i>（<font id="msgCount">0</font>）！</a></li>
+					<li><a href="/usr/myCenter.action">我的账户（<font id="myCount">0</font>）</a></li>
+					<li>
+					
+					
+					
+				     
+		         		
+		         		
+		         		
+		         		
+		         			<a href="/product/product_gotoTscart.action">
+		         		
+		         		
+		         	
+		          
+		          
+				  
+		         	购物车(1)
+				  
+				  </a>
+					
+					</li>
+					
+					<!--  职能店铺入口，如何怕段是否是职能的员工-->
+	                <li>
+			           
+		        	</li>
+					
+					
+					
+			        
+		        	
+					<li><a href="/usr/logout.action"><em>退出</em></a></li>
+				</ul>
+			</div>
+		</div>
+		<div class="index_logo">
+			<div class="wrapper">
+				<img src="/index_new/img/logo.png" class="logo" />
+				<div class="top_search">
+					<form id="search_form" action="/product/product_searchProducts.action" method="post">
+					<input style="display: inline-block;margin-top: 9px;" id="productName" name="productName" autocomplete="off" type="text" class="search"  onfocus="javascript:jq(this).val('');" value=""/>
+					<input type="submit" class="submit" value="搜索" />
+					</form>
+				</div>
+				<div class="suona_con" style="z-index: 9999;">
+					<i class="suona"></i>
+					<ul id="ul_NoticeTop">
+						<li><a>暂未发布公告信息！ </a></li>
+					</ul>
+					<span><a style="line-height: 28px;" href="/helpinfo/helpinfo_findPath.action">MORE>></a></span>
+				</div>
+			</div>
+		</div>
+		
+		<div class="wrapper" style="position: relative;z-index:10;">
+			<!--导航下的菜单-->
+			<div class="index_nav" style="height: 39px;">
+				<span class="nav_all" style="cursor: pointer;font-size: 16px;" onclick="javascript:location.href='/product/product_searchProducts.action';">全部商品分类</span>
+				<ul>
+					<li ><a style="font-size: 16px;" href="/index.action">首页</a></li>
+					
+			          <li >
+			              <a style="font-size: 16px;" class="def" href="/olappeal/olAppeal_goAppealDkList.action">数据核对</a>
+			          </li>
+			        
+					<li><a style="font-size: 16px;" target="_blank" href="http://www.ljabc.com.cn/">链家微校</a></li>
+					<li ><a style="font-size: 16px;" href="/gongyi/gongyi_list.action">爱心捐赠</a></li>
+					<li ><a style="font-size: 16px;" href="/usr/myCenter.action">个人中心</a></li>
+					<li ><a style="font-size: 16px;" href="/helpinfo/help_beforeList.action">帮助中心</a></li>
+				</ul>
+				<p><i></i>
+				
+				     
+		         		
+		         		
+		         		
+		         		
+		         			<a style="font-size: 16px;" style="font-size: 16px;" href="/product/product_gotoTscart.action">
+		         		
+		         		
+		         	
+		          
+		          
+				  
+		         	购物车(1)
+				  
+				  
+		         	</a>
+				</p>
+			</div>
+			<!--导航下的菜单-->
+			
+			<div class="index_banner" style="display: none;position: absolute;left:0px;top:38px;z-index: 9999;">
+				<!--主页固化的分页，其他页时没有此分类项-->
+				<div class="left">
+					<ul style="font-size: 14px;">
+					
+						<li><a href="/product/product_searchProducts.action?categroy=1002"><i class="icon_2"></i>日常用品<span>></span></a></li>
+						<li><a href="/product/product_searchProducts.action?categroy=1003"><i class="icon_3"></i>电子通讯<span>></span></a></li>
+						<li><a href="/product/product_searchProducts.action?categroy=1011"><i class="icon_7"></i>感恩回馈<span>></span></a></li>
+						<li><a href="/product/product_searchProducts.action?categroy=1004"><i class="icon_4"></i>服装衣饰<span>></span></a></li>
+						<li><a href="/product/product_searchProducts.action?categroy=1001"><i class="icon_1"></i>办公设备<span>></span></a></li>
+						<li><a href="/product/product_searchProducts.action?categroy=1014"><i class="icon_6"></i>文具耗材<span>></span></a></li>
+						<li><a href="/product/product_searchProducts.action?categroy=1013"><i class="icon_8"></i>职能服务<span>></span></a></li>
+						<li><a href="/product/product_searchProducts.action?categroy=1005"><i class="icon_5"></i>营销工具<span>></span></a></li>
+		
+							
+					</ul>
+					<div class="line_float" style="display: none;font-size: 14px;">
+					</div>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>
+
+	      <div class="main2" style="position: relative;margin:0px auto auto;width:1200px;min-height:400px;">
+	          
+<div class="flow_chart">
+    <span class="flow_chart_span">核对订单信息</span>
+    <div class="flow_chart_right">
+       <div class="post_step_one" style="margin-left:0px;">
+	      <div class="post_step_one_left"></div>
+	      <div class="post_step_one_mid"><span>确认兑换礼品</span></div>
+	      <div class="post_step_one_right"></div>
+       </div>
+       <div class="post_step_one">
+	      <div class="post_step_one_left_on"></div>
+	      <div class="post_step_one_mid_on"><span>核对订单信息</span></div>
+	      <div class="post_step_one_right_on"></div>
+       </div>
+       <div class="post_step_one">
+	      <div class="post_step_one_left_off"></div>
+	      <div class="post_step_one_mid_off"><span>支付生成订单</span></div>
+	      <div class="post_step_one_right_off"></div>
+       </div>
+    </div>
+</div>
+<form id="post_type_form" method="post">
+ <div class="post_type_top">
+ 
+  <span>核对信息 </span>
+</div>
+ <div class="post_type" id="post_type_mail">
+ <h1>1、收货人信息&nbsp;&nbsp;
+        <a id="post_edit_show" href="javascript:showEditPostAddress(1);" class="post_address_edit_a" style="display: none;">[修改]</a>
+        <a id="post_edit_none" href="javascript:showEditPostAddress(-1);" class="post_address_edit_a" style="display:none;">[关闭]</a>
+    </h1>
+	<table id="showTableUserAddress" style="display: none;">
+	  <tr height="25">
+	    <td width="130px;" align="right">收货人姓名：</td>
+	    <td id="td_post_user_address"></td>
+	  </tr>
+	  
+	  
+	  	<tr height="30">
+			<td class="column_td" style="text-align:right;" align="right">系统号：</td>
+			<td class="column_td" id="td_uid_address_address">
+				20201141
+			</td>
+		</tr>
+	  
+	  
+			  <tr height="25">
+			    <td width="130px;" align="right">邮&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;箱：</td>
+			    <td id="td_post_email_address">cainl@homelink.com.cn</td>
+			  </tr>
+	  	
+	  <tr height="25">
+	    <td width="130px;" align="right">手机号码：</td>
+	    <td id="td_post_phone_address"></td>
+	  </tr>
+	  
+	  
+	</table>
+	<div id="user_edit_address_div" class="user_edit_address_div" >
+		   
+	   <table id="add_postAddress_table" style="border-collapse:collapse;margin-left:10px;margin-top:10px;">
+        <tr height="30">
+			<td width="90px;" class="column_td" style="text-align:right;" align="right">收货人姓名：</td>
+			<td width="1000px;" class="column_td">
+			   <input onblur="check_input_text('user');" name="tsname" onfocus="refresh_input('user');" id="post_user_input"  value="蔡宁莉"/>&nbsp;&nbsp;<span style="color:red;">(必填)</span>&nbsp;&nbsp;
+			   <span id="post_user_notice_span" style="display:none;" class="post_address_notice">请填写正确的收货人！</span>
+			</td>	
+		</tr>
+	    
+	    
+	    
+		    <tr height="30">
+				<td class="column_td" style="text-align:right;" align="right">系统号：</td>
+				<td class="column_td">
+				<input  id="post_uid_input" value="20201141"  name="tsuserid" />&nbsp;&nbsp;<span style="color:red;">(必填)</span></td>
+			</tr>
+		
+		
+		
+		  <tr height="30">
+			<td class="column_td" style="text-align:right;" align="right">邮箱：</td>
+			<td class="column_td">
+			<input value="cainl"   name="marketemail" size="10"/><b>@homelink.com.cn</b></td>	
+		  </tr>
+		
+		
+		<tr height="30">
+			<td class="column_td" style="text-align:right;" align="right">手机号码：</td>
+			<td class="column_td">
+			   <input onblur="check_input_text('phone');" onfocus="refresh_input('phone');" id="post_phone_input" name="tsphone"  value="15313152673"/>&nbsp;&nbsp;<span style="color:red;">(必填)</span>
+			   &nbsp;&nbsp;
+			   
+			 <span style="display:none;" id="post_phone_notice_span" class="post_address_notice">请填写正确的手机号！</span>&nbsp;&nbsp;<span style="display:none;" id="post_tel_notice_span" class="post_address_notice">请填写正确的固定电话！</span>
+			 </td>	
+		</tr>
+		
+		 
+      </table>
+	</div>
+	
+	
+	   <h1>2、
+	   			
+	   预约时间</h1>
+	   <!-- 朝阳预约缴税  定制 -->
+	   
+	   
+	   <div style="width:auto;height:331px;margin-left: 20px;position: relative;">
+		   <div id="js_top_calendar_wrapper_01" class="calendar" style="display: inline-block;width: 500px;position: absolute;left: 0px;top: 0px;">
+			     <div class="h3 cf">
+					<div class="ul_time_tab" style="position:relative;height:32px;margin-left: 150px;">
+						<ul style="position:absolute;left:0px;top:0px;" data-node="tableHeader">
+							<li class="on" style="font-weight: bold; color: red;">上午</li>
+						</ul>
+					</div>
+				</div>
+				<div id="dayArr_div_01" class="cal_table">
+				</div>
+			</div>
+			<div id="js_top_calendar_wrapper_02" class="calendar" style="display: inline-block;width: 500px;position: absolute;left:520px;top: 0px;">
+			     <div class="h3 cf">
+					<div class="ul_time_tab" style="position:relative;height:32px;margin-left: 150px;">
+						<ul style="position:absolute;left:0px;top:0px;width:auto;" data-node="tableHeader">
+							<li class="on" style="font-weight: bold; color: red;">下午</li>
+						</ul>
+					</div>
+				</div>
+				<div id="dayArr_div_02" class="cal_table">
+				</div>
+			</div>
+		</div>
+	   
+	   
+	   <p id="p_uncheck_">
+	       网签合同号：<input name="wangqianhetong" value="" style="width: 100px" class="admin_input_text" type="text" onkeyup="refreshOrderComment();"/>&nbsp;&nbsp;
+	       客户姓名：<input name="kehuxingming" value="" style="width: 100px" class="admin_input_text" type="text" onkeyup="refreshOrderComment();" />&nbsp;&nbsp;
+	       客户身份证号：<input name="kehushengfenzheng" value="" style="width: 100px" class="admin_input_text" type="text" onkeyup="refreshOrderComment();" />&nbsp;&nbsp;
+	       过户专员：<input name="guohuzhuanyuan" value="" style="width: 100px" class="admin_input_text" type="text" onkeyup="refreshOrderComment();" />&nbsp;&nbsp;
+       
+       <input name="yuyueshijian" value="" type="hidden" />&nbsp;&nbsp;
+       <input name="dateType" value=""  type="hidden" />&nbsp;&nbsp;
+
+	   
+	   <p ></p>
+    
+</div>
+<div class="cart_content">
+    <div class="content_title">
+        <div class="title_span" style="width: 100px;">
+           <input id="checkBoxAll" type="checkbox" onclick="checkAllProduct();"/>
+           <span>全选</span>
+        </div>
+        <div class="title_span" style="width:450px;">
+           <span style="margin-left:150px;">名称</span>
+        </div>
+        <div class="title_span" style="width:100px;">
+           <span style="margin-left:10px;">单价(H币)</span>
+        </div>
+        <div class="title_span" style="width:200px;">
+           <span style="margin-left:65px;">数量</span>
+        </div>
+        <div class="title_span" style="width:200px;border:none;">
+           <span style="margin-left:150px;">操作</span>
+        </div>
+    </div>
+     
+     <input type="hidden" id="svpdUpLoadType0" name="svpdUpLoadType" value="-1"/>
+     <input type="hidden" id="spvdName0" name="spvdName" value="东城预约缴税"/>
+     <input type="hidden" id="svpdUpLoadTypeDetail0"  name="svpdUpLoadTypeDetail" value="-1"/>
+     <input type="hidden" name="spvdCode" value="ZN0870"/>
+     <input type="hidden" name="svpdDetailCategory" value="101336"/>
+     <input type="hidden" id="2925_2188_2566" value="东城预约缴税  下午  东城"/>
+    <div class="content_body">
+        <div class="content_span" style="width: 100px;">
+           <input type="checkbox" name="checkBoxProduct" value="2925_2188_2566"/>
+           <img height="50" width="50" alt="" src="http://xwgladmin.homelink.com.cn/upload/image/20151216144634060.jpg" />
+        </div>
+				        <div class="content_span" style="width:450px;">
+			          		<a href="#" class="product_name">东城预约缴税</a>
+			      	    </div>
+				        <div class="content_span" style="width:100px;">
+				           <span style="margin-left:0px;text-align:center;width:100px;">15</span>
+				        </div>
+				        <div class="content_span" style="width:200px;">
+				        
+				           <img onclick="changeProductNum(2925,2188,2566,-1);" style="margin-left:40px;margin-top:35px;" src="/themes/images/subtract.gif" alt="decrease" height="12" width="12">
+			         	
+			         	   <input type="hidden" id="hidden_num_2925_2188_2566" value="1" />
+				           <input  onblur="checkProductBuyNum(2925,2188,2566);" style="margin-left:5px;margin-top:30px;width:50px;text-align: center;"  id="cart_num_2925_2188_2566" type="text" value="1" >                               
+			             
+			               <img onclick="changeProductNum(2925,2188,2566,1);" style="margin-left:5px;margin-top:35px;" src="/themes/images/adding.gif" alt="increase" height="12" width="12">                             
+			     	   	 
+			     	   </div>
+				        <div class="content_span" style="width:100px;margin-left:100px;">
+				           <a href="javascript:delProductByIds('2925_2188_2566');" class="cart_act">删除</a>
+				        </div>
+    </div>
+    
+		    <div class="content_sum">
+		       
+		       <a href="javascript:delAllCheckProduct();" class="product_name" style="margin-left: 0px;">删除选中的商品</a>
+		       <span>总计：<font id="product_total_num" style="color:red;">1</font>件礼品</span>
+			    </div>
+			    <div class="content_bottom">
+			       <b>购物车总额：<font style="color:red;"><font id="product_total_price">15</font>&nbsp;H币</font></b>
+			    </div>
+			</div>
+	<div style="margin:10px;height: 85px;font-size: 13px;font-family: 微软雅黑; font-weight: bold; ">
+		<div style="float: left;width:40px;">备注：</div>
+		<div style="float: left;overflow: auto;">
+			<textarea onfocus="this.blur()" rows="3" cols="160"  id="eoContent" name="eoContent" class="eoContent" onfocus="if(jq(this).val()=='请根据产品要求进行填写，如无必须内容请填写无.')javascript:jq(this).val('');">请根据产品要求进行填写，如无必须内容请填写无.</textarea>
+		</div>
+	</div>
+<div style="clear: both"></div>
+<div class="post_type_top">
+  <span>选择支付账户</span>
+</div>
+<div id="pay_account_list"></div>
+	
+
+	
+</form>	
+
+
+<div style="width: 1200px;height:110px;margin-top:10px;">
+   <div class="lookReset_div">
+      <div class="payInfo">
+             <b>实付款：<font style="color:red;"><font id="product_total_price">15 </font>&nbsp;H币</font></b>
+          <b id="post_type_user">收货人：<span id="post_user_span">蔡宁莉</span>&nbsp;&nbsp;联系方式：<span id="post_phone_span">15313152673&nbsp;&nbsp;</span></b>
+      </div>
+   </div>
+</div>	
+<div id="order_apply_action" class="cart_bottom">
+   <input type="button" class="to_back" value="返回购物车" onclick="javascript:go('/product/product_gotomarketcart.action');"/>
+   <input type="button" class="to_order" value="提交订单"  onclick="submitPostAddress();"/>
+</div>
+<div id="order_apply_title" class="order_apply_title">正在为您提交订单，请稍候。。。</div>
+
+
+	      </div>
+	    
+<div class="footer1" style="height:39px;position: relative;">
+  <img src="/themes/images/bottom.jpg"/>
+  <span style="position: absolute;left: 230px;top:19px;color: #455554;font-size: 14px;background: white;">
+				座机：010-59106869&nbsp;&nbsp;&nbsp;&nbsp;
+					010-59106840&nbsp;&nbsp;&nbsp;&nbsp;
+					010-59106899&nbsp;&nbsp;&nbsp;&nbsp;
+					010-59103614
+				</span>
+				<span style="position: absolute;left: 710px;top:19px;color: #455554;font-size: 14px;background: white;">
+				或链家QQ留言&nbsp;&nbsp;常建蕊&nbsp;&nbsp;唐银涛
+				</span>
+				<span style="position: absolute;left: 955px;top:19px;color: #455554;font-size: 14px;background: white;">
+				服务时间：周一到周五 9:00 - 17:30
+				</span>
+</div>
+	     <!-- 暂时屏蔽   不予上线 
+    	<div class="model_talk_div" style="background: url(#);border:none; height: 210px;top:60px;width:60px; right:0px;z-index: 999;cursor: pointer;margin-top: 0px;">
+		   
+		   
+		   	 <a style="display: block;height: 210px;width:60px;" target="_blank" href="http://talkserver.homelink.com.cn/talk/toUserTalkSelect.action?userCode=20201141"><img  id="model_talk_div_server" src="/themes/images/server.gif"></a>
+		   
+	 	</div>
+	 	-->
+    </body>
+</html>
+<script languange="javascript">
+
+</script>

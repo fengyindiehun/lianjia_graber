@@ -1,0 +1,1887 @@
+
+
+
+
+
+  
+
+
+
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <title>东城预约缴税</title>
+        <link href="/themes/css/css.css" rel="stylesheet" type="text/css" />
+         <script type="text/javascript" src="/js/pages.js"></script>
+        <script type="text/javascript" src="/js/jquery.js"></script>
+        <script type="text/javascript" src="/js/jquery.form.js"></script>
+        <script type="text/javascript" src="/js/jquery.validate.js"></script>
+        <script type="text/javascript" src="/js/validateMsg.js"></script>
+        <script type="text/javascript">
+            var jq=jQuery.noConflict();
+        </script>
+       
+<link type="text/css" rel="stylesheet" href="/themes/css/productdetail.css"/>
+<script type="text/javascript" src="/js/productView.js"></script>
+
+
+<!-- 服务支持相关js -->
+<script type="text/javascript" src="/index_new/js/map.js"></script>
+<script type="text/javascript" src="/html/public/js/storecommon.js"></script>
+<!-- end -->
+
+<style type="text/css">
+/**
+店铺按钮样式
+*/
+.store_btn{
+display:inline-block;
+height:20px;
+background:#f2f2f2;
+line-height:20px;
+border:1px solid #d9d9d9;
+color:black;
+font-weight: bold;
+padding-left:5px;
+padding-right:5px;
+}
+.qq_online{
+color:#fff;
+background:#9bbb59;
+}
+.qq_offline{
+color:#fff;
+background:#7f7f7f;
+}
+.font_color_blue{
+	color:#0099ff;
+}
+.ware_text .product_name{
+font-size: 16px;
+    font-weight: 700;
+    line-height: 1.5em;
+    overflow: hidden;
+    border: none;
+    width: 590px;
+}
+</style>
+
+<script type="text/javascript">
+//隐藏咨询栏
+function quxiao(){
+		jq("#consultings").css("display","none");
+};
+
+jq(document).ready(function() {
+	showIndexProduct(5);
+	showIndexProduct(1);
+	showEvlationTotalPage(1);
+	showEvlationStar5Page(1);
+	showEvlationStar3Page(1);
+	showEvlationStar1Page(1);
+	showRole();
+	formatSorce();
+	 //只有一个颜色尺寸的默认选中
+    var flag=jq("#isflag").val();
+    if(flag==1){
+    		jq("a[name='color_item']").css("border","2px solid #006e2e");
+    		jq("a[name='size_item']").css("border","2px solid #006e2e");
+    }
+    
+    /**
+	服务支持，需要引入2个js文件
+	*/
+	initServiceSupportImgs();
+	//初始化产品的店铺信息
+	initPresciousStoreInfo();
+    
+});
+
+
+//初始化产品店铺信息
+function initPresciousStoreInfo(){
+
+	var sId = jq("#sId").val();
+	if(sId){
+		jq.ajax({
+            url: "/functionofstore/initPresciousStoreInfo.action",
+            type: "post",
+            dataType:"json",
+            data: {sId:sId},
+            success: function (jsonText) {
+            	var fun_store_info  = "";
+                if(jsonText){
+                    jq.each(jsonText,function(i,item){
+                        var S_ID = item.S_ID;//产品id
+                        var F_S_ID = item.F_S_ID;//店铺id
+                        
+                        var svpdGoodsPing = '96';
+                        var SIGNBOARD = item.SIGNBOARD;//店铺招牌
+                        fun_store_info += "<img align='middle' width='197px' height='70px' src='http://xwgladmin.homelink.com.cn/"+SIGNBOARD+"' title='店铺招牌' style='border-top:0px solid #f2f2f2;border-bottom:1px solid #f2f2f2;'/><br/><br/>";
+                        var STRENAME = item.STRENAME;
+                        serChanItem(STRENAME);
+                        fun_store_info += "<span style='font-weight:bold'>" + STRENAME + "</span><br/><br/>";
+                        //TODO 综合好评率
+                        fun_store_info += "综合好评率："+svpdGoodsPing+"%<br/><br/>";
+                        var USER_ID = item.USER_ID;//创建人
+                        var CREATOR = item.CREATOR;
+                        
+                        var SVPD_JINGLI = item.SVPD_JINGLI;//产品经理用户号
+                        var SYUS_NAME = item.SYUS_NAME;//产品经理用户名
+                        
+                        
+                        fun_store_info += "<img style='position:relative;top:8px;' align='bottom' title='链家qq' src='/html/functionofstore/img/lianjia_qq_icon.png' width='25px' height='28px' style='cursor:pointer'/>";
+                        fun_store_info += ""+SYUS_NAME;
+                        fun_store_info += "&nbsp;&nbsp;<a href='javascript:openQQ("+SVPD_JINGLI+");' class='store_btn qq_online'>链家QQ咨询</a><br/>";
+                        
+                        
+                        
+                        item.SYUS_PHONE = 59724545;
+                        
+                        
+                        
+                        
+                        var SYUS_PHONE = item.SYUS_PHONE;
+                        fun_store_info += "<img style='position:relative;top:8px;' align='bottom' title='电话' src='/html/functionofstore/img/phone_icon.png' width='25px' height='28px' />";
+                        fun_store_info += ""+SYUS_PHONE+"<br/><br/>";
+                       
+                        
+                        fun_store_info += "<div style='border-top:1px solid #f2f2f2;'><br/></div>";
+                        //进入店铺
+                        var TUSF_ID = item.TUSF_ID;
+                        var TUSF_FACE_ID = item.TUSF_FACE_ID;
+                        var enterStore = "/shop/goshowShopFace.action?shopFaceId="+TUSF_ID+"&faceId="+TUSF_FACE_ID;
+                        if(TUSF_ID && TUSF_FACE_ID){
+	                        fun_store_info += "<a class='store_btn' target='_blank' href='"+enterStore+"'>进入店铺</a>";
+                        }else{
+                        	fun_store_info += "<span class='store_btn' style='color:gray;'>店铺未装修</span>";
+                        }
+                        fun_store_info += '&nbsp;&nbsp;<a class="store_btn" href="javascript:saveFavoritesStore(\''+F_S_ID+'\',\''+STRENAME+'\',\''+F_S_ID+'\');">收藏店铺</a><br/><br/>';
+                        //支持服务
+                        var SERVICE_SUPPORT = item.SERVICE_SUPPORT;
+                        var SERVICE_SUPPORT_OTHER = item.SERVICE_SUPPORT_OTHER;//其他服务信息
+                        var rootPath = '/';//根路径
+                        var serviceSupportImgs = getServiceSupportImgs(rootPath,SERVICE_SUPPORT,SERVICE_SUPPORT_OTHER);
+                        if(serviceSupportImgs){
+                        	fun_store_info += "服务支持：<br/><br/>";
+                        	fun_store_info += serviceSupportImgs;
+                        }
+                        
+
+                        jq("#fun_store_brand-logo").attr("src","http://xwgladmin.homelink.com.cn/"+SIGNBOARD);
+                        jq("#fun_store_name").html(STRENAME+"旗舰店");
+                        jq("#fun_store_seller-phone").html("<i class='concat-ico'></i>"+SYUS_PHONE+"&nbsp;&nbsp;"+SYUS_NAME);
+                        
+                    
+                        jq("#ziying_class_4_server").html(getServiceSupportImgsDisanfang(rootPath,SERVICE_SUPPORT,SERVICE_SUPPORT_OTHER));
+                    
+                        
+                        jq("#fun_store_J-im-btn").html(
+						    "<span onclick='javascript:openQQ("+SVPD_JINGLI+");' class='item'>"+
+								"<a class='jd-im' href='#none'>"+
+									"<b>联系卖家</b>"+
+								"</a>"+
+							"</span>");
+                        
+                        var fun_store_info_di = "";
+                        if(TUSF_ID && TUSF_FACE_ID){
+	                        fun_store_info_di = "<a class='btn-gray btn-shop-access J-enter-shop' target='_blank' href='"+enterStore+"'>进入店铺</a>";
+                        }else{
+                        	fun_store_info_di = "<a class='btn-gray btn-shop-access J-enter-shop' href='#'>店铺未装修</a>";
+                        }
+                        
+                        jq("#fun_store_pop-shop-enter").html(
+                        		fun_store_info_di+
+		        				"<a style='margin-left: 20px;' class='btn-gray btn-shop-follower J-follow-shop' href='javascript:saveFavoritesStore("+F_S_ID+",\""+STRENAME+"\","+F_S_ID+");'>关注店铺</a>"
+		        				);
+                    });
+                }
+                if(fun_store_info){
+                	jq("#fun_store_disanfang").css("display","block");
+                }else{
+                	jq("#fun_store_ziying").css("display","block");
+                }
+            }
+        });
+	}else{
+		jq("#fun_store_ziying").css("display","block");
+	}
+}
+//服务变更提示
+function serChanItem(STRENAME){
+	if(STRENAME){
+		jq("#service_change_item").html("由"+STRENAME+"提供售后服务");
+	}else{
+		jq("#service_change_item").html("由加油站提供售后服务");
+	}
+}
+//进入店铺
+function enterStore(F_S_ID){
+	alert("进入店铺，id:"+F_S_ID);
+	if(F_S_ID){
+		var tempOpen = windwo.open("");
+		tempOpen.location.href="http://wwww.baidu.com";
+	}
+}
+//收藏店铺
+function saveFavoritesStore(F_S_ID,STRENAME,URL){
+	jq.ajax({
+            url: "/functionofstore/saveFavoritesStore.action",
+            type: "post",
+            dataType:"json",
+            data: {F_S_ID:F_S_ID,F_NAME:STRENAME,F_URL:URL},
+            success: function (jsonText) {
+                if(jsonText){
+                	if(jsonText == '1'){
+                		alert("收藏成功，您可以到个人中心，我的收藏查看。");
+                	}
+                }
+            }
+        });
+}
+//进入QQ
+function openQQ(SVPD_JINGLI){
+	if(SVPD_JINGLI){
+		jq("#OpenUserName").val(SVPD_JINGLI);
+		EimTest.OpenChatDial();
+	}else{
+		alert('抱歉，联系人账号丢失。');
+	}
+}
+//end
+
+
+//
+function formatSorce(){
+	var sorce=jq("#svpdSorce").html();
+	if(sorce=="京东价"){
+		jq("#svpdSorce").html("京&nbsp;&nbsp;东&nbsp;&nbsp;价");
+	}else if(sorce=="市场价"){
+		jq("#svpdSorce").html("市&nbsp;&nbsp;场&nbsp;&nbsp;价");
+	}else if(sorce=="天猫价"){
+		jq("#svpdSorce").html("天&nbsp;&nbsp;猫&nbsp;&nbsp;价");
+	}
+}
+function showRole()
+{
+	 var type=jq("#svpdUpLoadType").val();
+	 var typedetail=jq("#svpdUpLoadTypeDetail").val();
+	
+	 var flag=false;
+	 if(typedetail==1||typedetail==5||typedetail==6||typedetail==7)
+	 {
+		 flag=true;
+	 }
+	 if(type==1&&flag)
+	 {
+			jq("#buy_select_type").show();
+			jq("#hidechangenum1").show();
+			jq("#hidechangenum2").show();
+			jq("#hidechangenum3").hide();
+	 }
+	 else
+	 {
+		    jq("#hidechangenum3").show();
+		    jq("#hidechangenum1").hide();
+			jq("#hidechangenum2").hide();
+		    jq("#buy_select_type").hide();
+	 }
+	 var roleId=jq("#roleId").val();
+	 if(roleId>1&&flag)
+	 {
+		 jq("#product_num").attr("readonly",false);
+		 if(roleId==2)
+			{
+			   jq("a[name='color_item3']").attr("href","javascript:void(0);");
+			   jq("a[name='color_item4']").attr("href","javascript:void(0);");
+			}
+		   else if (roleId==3)
+			{
+			   jq("a[name='color_item4']").attr("href","javascript:void(0);");
+			}
+	 }
+	 else if(roleId==1&&flag)
+	 {
+		 jq("#hidechangenum1").hide();
+		 jq("#hidechangenum2").hide();
+		 jq("#hidechangenum3").show();
+		 jq("a[name='color_item2']").attr("href","javascript:void(0);");
+		 jq("a[name='color_item3']").attr("href","javascript:void(0);");
+		 jq("a[name='color_item4']").attr("href","javascript:void(0);");
+		 jq("#product_num").attr("readonly",true);
+	 }
+}
+//选择角色
+function selectRole(id,type,typedetail){
+	 var flag=false;
+	 if(typedetail==1||typedetail==5||typedetail==6||typedetail==7)
+	 {
+		 flag=true;
+	 }
+	 if(type==1&&flag)
+	 {
+			jq("#buy_select_type").show();
+			jq("#hidechangenum1").show();
+			jq("#hidechangenum2").show();
+			jq("#hidechangenum3").hide();
+	 }
+	 else
+	 {
+		    jq("#hidechangenum3").show();
+		    jq("#buy_select_type").hide();
+		    jq("#hidechangenum1").hide();
+			jq("#hidechangenum2").hide();
+	 }
+	if(id>1&&flag){
+			jq("#product_num").attr("readonly",false);
+		   if(id==2)
+			{
+			   jq("a[name='color_item2']").css("border","2px solid #006e2e");
+			   jq("a[name='color_item1']").css("border","2px solid #EEEEEE");
+			   jq("a[name='color_item3']").css("border","2px solid #EEEEEE");
+			   jq("a[name='color_item4']").css("border","2px solid #EEEEEE");
+			}
+		   else if (id==3)
+			{
+			   jq("a[name='color_item2']").css("border","2px solid #EEEEEE");
+			   jq("a[name='color_item1']").css("border","2px solid #EEEEEE");
+			   jq("a[name='color_item3']").css("border","2px solid #006e2e");
+			   jq("a[name='color_item4']").css("border","2px solid #EEEEEE");
+			}
+		   else if (id==4)
+			{
+			   jq("a[name='color_item2']").css("border","2px solid #EEEEEE");
+			   jq("a[name='color_item1']").css("border","2px solid #EEEEEE");
+			   jq("a[name='color_item3']").css("border","2px solid #EEEEEE");
+			   jq("a[name='color_item4']").css("border","2px solid #006e2e");
+			}
+	} else 
+	if(id==1&&flag)
+	{
+		 jq("#hidechangenum1").hide();
+		 jq("#hidechangenum2").hide();
+		 jq("#hidechangenum3").show();
+		jq("#product_num").attr("readonly",true);
+		jq("a[name='color_item1']").css("border","2px solid #006e2e");
+		jq("a[name='color_item2']").css("border","2px solid #EEEEEE");
+		jq("a[name='color_item3']").css("border","2px solid #EEEEEE");
+		jq("a[name='color_item4']").css("border","2px solid #EEEEEE");
+	}
+}
+//礼品细节图片
+function productPicSelect(picId){
+	jq(".mone_pic_select").css("border","2px solid #DDDDDD");
+	jq("#mone_pic_select_"+picId).css("border","2px solid #479202");
+	jq("#midimg").attr("src",jq("#mone_img_select_"+picId).attr("src"));
+	jq("#bigView img").attr("src",jq("#mone_img_select_"+picId).attr("src"));
+}
+function showDetail(name){
+    var tableArr=new Array("detail","size","pingjia","service");
+	for(var i=0;i<4;i++){
+		if(name==tableArr[i]){
+			jq("#product_detail_"+tableArr[i]).css("display","block");
+		}else{
+			jq("#product_detail_"+tableArr[i]).css("display","none");
+		}
+	}
+}
+
+function showEvlation(name){
+	
+    var tableArr=new Array("total","star5","star3","star1");
+	for(var i=0;i<4;i++){
+		if(name==tableArr[i]){
+			jq("#product_detail_evlution_"+tableArr[i]).css("display","block");
+		}else{
+			jq("#product_detail_evlution_"+tableArr[i]).css("display","none");
+		}
+	}
+}
+//对购买数量进行删减
+function changeNum(num){
+	var old=parseInt(jq("#product_num").val());
+	if(old==""||old+num<1){
+		jq("#product_num").val(1);
+		return;
+	}
+	jq("#product_num").val(old+num);
+}
+
+
+
+//加载首页商品
+function showIndexProduct(showType){
+	   jq.ajax({
+         type: "POST",
+         url: "/product/product_getProductByShowType.action",
+         data: "showType="+showType+"&rootDir=/&uiType=2&imageUrl=http://xwgladmin.homelink.com.cn&categoryCode=101336&svpdId=2925",
+         dataType: "html",
+         success: function(data){
+       	     if(showType==5){
+       	    	 jq("#main_Hot_sell").html(data);
+       	     }
+        	 else if(showType==1){
+        		 jq("#main_recommend").html(data);
+        	 }
+         }
+    });
+ }
+
+//添加物资到购物车
+function addTSProductToCart(svpdId,type){
+	var flag=jq("#isflag").val();
+	if(flag!=1){//不是只有一个尺寸颜色
+		if(color==-1&&size==-1){
+			alert("亲，请先选择尺寸和颜色哦");
+			return false;
+		}
+	}
+	var telexg = /^\d+$/;
+	var product_num=jq("#product_num").val();      
+	if(product_num==""||!telexg.test(product_num)||parseInt(product_num)<=0){
+		  jq("#product_num").val(1);
+	}
+	var stockQty=parseInt(jq("#detailStockQty").html());
+	var buyNum=parseInt(jq("#product_num").val());
+	jq.ajax({
+         type: "POST",
+         url: "/product/product_addTSProductToCart.action",
+         data: "svpdId="+svpdId+"&buyNum="+buyNum+"&colorId="+jq("#currColorId").val()+"&sizeId="+jq("#currSizeId").val(),
+         dataType: "html",
+         success: function(data){
+        	  if(data==1){
+		       	   go("/product/product_toOrderTSApply.action");
+      	     } else if(data==0){
+      	    	 alert("购物车中有不同种类商品");
+      	     } else if(data==-1){
+      	    	 alert("购物车中有不同种类商品");
+      	     }else if(data==4){
+    	     	alert("亲，购物车已存在第三方服务礼品");
+    	     	return false;
+    	     }
+         }
+    });
+}
+var color=-1;
+var size=-1;
+var imgPath;
+var style="margin-bottom: 4px;";
+var newstyle="border: 2px dashed #EEEEEE;color:#EEEEEE;background-color: #FFFFFF;margin-bottom: 4px;";
+//选择颜色,尺寸
+function selectColorOrSize(id,type){
+	if(type==0){
+	   	jq("#currColorId").val(id);//变换颜色
+	   	color=id;
+	   	size=jq("#currSizeId").val();
+  	}else{
+  		 jq("#currSizeId").val(id);//变换尺寸
+  		 size=id;
+  		 color=jq("#currColorId").val();
+  	}
+	//初始化 
+	jq("a[name='size_item']").attr("style",style);
+    jq("a[name='color_item']").attr("style",style);
+    	jq.ajax({
+    		type:"post",
+    		url:"/product/product_checkIsDisabled.action?svpdId=2925",
+    		dataType:"json",
+            data:{"id":id,"type":type,"color":jq("#currColorId").val(),"size": jq("#currSizeId").val()},
+            success:function(data){
+                if(data!="1"){
+                	 
+                	  imgPath = data[0].imgPath;
+                	 jq("a[name='size_item']").attr("style",newstyle);
+           		     jq("a[name='size_item']").attr("href","javascript:void(0);");//禁用
+           		     jq("a[name='color_item']").attr("style",newstyle);
+        		     jq("a[name='color_item']").attr("href","javascript:void(0);");//禁用
+                     for(var i=0;i<data.length;i++){
+                    		//初始化
+                    		 if(data[i].stock>0){
+								 jq("#size_item_"+data[i].sizeId).attr("style",style);
+							     jq("#color_item_"+data[i].colorId).attr("style",style);
+							     jq("#size_item_"+data[i].sizeId).attr("href","javascript:selectColorOrSize("+data[i].sizeId+","+1+");");
+	                    		 jq("#color_item_"+data[i].colorId).attr("href","javascript:selectColorOrSize("+data[i].colorId+","+0+");");
+                    		 }
+                     }
+                     jq("#color_item_"+jq("#currColorId").val()).css("border","2px solid #006e2e");//选中颜色不变
+        		     jq("#size_item_"+jq("#currSizeId").val()).css("border","2px solid #006e2e");//选中尺寸不变
+        		     if(type==0&&imgPath!=""&&imgPath!=null){
+         		     	jq("#midimg").attr("src","http://xwgladmin.homelink.com.cn/"+imgPath); 
+         		     }
+                }
+            }
+       });
+    getProductDetail(id,type);
+}
+
+//获取物资库存信息
+function getProductDetail(id,type){
+	
+	jq.ajax({
+         type: "POST",
+         url: "/product/product_getProductDetailByAjax.action",
+         data: "colorId="+color+"&sizeId="+size,
+         dataType: "html",
+         success: function(data){
+       	     if(data==1){
+       	    	 jq("#currDetailId").val("");
+       	    	 jq("#detailStockQty").html("0");
+
+ 				//禁用
+       	    	 jq("#size_item_"+jq("#currSizeId").val()).attr("href","javascript:void(0);");
+       	    	 jq("#color_item_"+jq("#currColorId").val()).attr("href","javascript:void(0);");
+       	    	 jq("#color_item_"+jq("#currColorId").val()).attr("style",newstyle);
+       	  		 jq("#size_item_"+jq("#currSizeId").val()).attr("style",newstyle);
+       	  		 
+       	    	 if("2"=="2"){
+       	    		 jq("#product_detail_status").html("库&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;存：无货，此礼品暂时售完");
+       	    	 }
+       	    	 else if("2"=="3"){
+       	    		 jq("#product_detail_status").html("库&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;存：<font style='color:red;font-size:14px;'>无货，此礼品暂时预订完</font>");
+       	    	 }
+       	     }
+       	     else{
+       	    	 jq("#currDetailId").val(data.split(",")[0]);
+       	    	 jq("#detailStockQty").html(data.split(",")[1]);
+       	    	 jq("#selectCode").html("礼品编号："+data.split(",")[2]);
+      	    	 jq("#selectPrice").html(data.split(",")[3]);
+      	    	 jq("#selectOldPrice").html(data.split(",")[3]);
+      	    	var total=data.split(",")[5];
+     	    	 if(total=="null"){
+         	    	 total=0;
+     	    	 }
+     	    	 var month=data.split(",")[6];
+    	    	 if(month=="null"){
+        	    	 month=0;
+    	    	 }
+     	    	 jq("#selectTotalSales").html(total);
+     	    	 jq("#selectMonthSales").html(month);
+				//初始化
+      	    	 jq("#size_item_"+jq("#currSizeId").val()).attr("href","javascript:selectColorOrSize("+jq("#currSizeId").val()+","+1+");");
+       	    	 jq("#color_item_"+jq("#currColorId").val()).attr("href","javascript:selectColorOrSize("+jq("#currColorId").val()+","+0+");");
+
+       	    	 if("2"=="2"){
+	       	    	 if(parseInt(data.split(",")[1])>0){
+	       	    		 jq("#product_detail_status").html("库&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;存：现货");
+	       	    	 }else{
+	       	    		 jq("#product_detail_status").html("库&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;存：无货，此礼品暂时售完");
+	       	    	 }
+       	    	 }else if("2"=="3"){
+       	    		 if(parseInt(data.split(",")[1])>0){
+	       	    		 jq("#product_detail_status").html("库&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;存：<font style='color:red;font-size:14px;'>预订&nbsp;&nbsp;（预计到货）</font>");
+	       	    	 }else{
+	       	    		 jq("#product_detail_status").html("库&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;存：<font style='color:red;font-size:14px;'>无货，此礼品暂时预订完</font>");
+	       	    	 }
+       	    	 }
+       	     }
+         }
+    });
+}
+
+//获取总得评论数
+function showEvlationTotalPage(curPageNo){
+	jq.ajax({
+         type: "POST",
+         url: "/product/product_getEvlationForProductDetail.action",
+         data: "page.curPageNo="+curPageNo+"&productId=2925&functionName=showEvlationTotalPage",
+         dataType: "html",
+         success: function(data){
+       	     jq("#detail_evlation_List_total").html(data);
+         }
+     });
+}
+//获取好评的评论
+function showEvlationStar5Page(curPageNo){
+	
+	jq.ajax({
+         type: "POST",
+         url: "/product/product_getEvlationForProductDetail.action",
+         data: "page.curPageNo="+curPageNo+"&productId=2925&star=5&functionName=showEvlationStar5Page",
+         dataType: "html",
+         success: function(data){
+       	     jq("#detail_evlation_List_star5").html(data);
+         }
+     });
+}
+//获取中评的评论
+function showEvlationStar3Page(curPageNo){
+	
+	jq.ajax({
+         type: "POST",
+         url: "/product/product_getEvlationForProductDetail.action",
+         data: "page.curPageNo="+curPageNo+"&productId=2925&star=3&functionName=showEvlationStar3Page",
+         dataType: "html",
+         success: function(data){
+       	     jq("#detail_evlation_List_star3").html(data);
+         }
+     });
+}
+//获取差评的评论
+function showEvlationStar1Page(curPageNo){
+	
+	jq.ajax({
+         type: "POST",
+         url: "/product/product_getEvlationForProductDetail.action",
+         data: "page.curPageNo="+curPageNo+"&productId=2925&star=1&functionName=showEvlationStar1Page",
+         dataType: "html",
+         success: function(data){
+       	     jq("#detail_evlation_List_star1").html(data);
+         }
+     });
+}
+//获取当前商品咨询列表
+function showConsultingPage(curPageNo){
+	
+	jq.ajax({
+         type: "POST",
+         url: "/product/product_markRead.action",
+         data: "page.curPageNo="+curPageNo+"&svpdId=2925",
+         dataType: "html",
+         success: function(data){
+       	     jq("#consulting").html(data);
+         }
+     });
+}
+//显示提交咨询问题层div
+function consultings(){
+	jq("#consultings").css("display","");
+
+};
+//提交咨询问题
+function submitconsulting(){
+	var consultingcontent = jq("#consultingcontent").val();
+	jq.ajax({
+        type: "POST",
+        url: "/product/product_submitconsulting.action",
+        data: "consultingcontent="+consultingcontent+"&svpdId=2925",
+        dataType: "html",
+        success: function(data){
+      	     if(data==1){
+          	     alert("提交成功！");
+          	     jq("#consultings").css("display","none");
+          	     }
+        }
+    });
+	
+}
+
+//礼品评价
+function evlationProduct(){
+	jq.ajax({
+        type: "POST",
+        url: "/order/order_evlationByProduct.action",
+        data: "svpdId=2925",
+        dataType: "html",
+        success: function(data){
+      	     if(data==2){
+      	    	 go("/order/order_toErrorEvlationDetail.action?svpdId=2925");
+          	    
+          	 }else{
+          		 go("/order/order_toMyEvlationDetail.action"+data);
+          	 }
+        }
+    });
+}
+
+//获取礼品评价数量
+function getEvlationCount(){
+	jq.ajax({
+        type: "POST",
+        url: "/product/product_getEvlationCount.action",
+        data: "svpdId=2925",
+        dataType: "html",
+        success: function(data){
+      	     if(data==2){
+          	    jq('#evlation_model_talk_div').css("left",(jq(window).width()/2-150)+"px");
+	            jq('#evlation_model_talk_div').css("display","block");
+          	 }else{
+          		 go("/order/order_toMyEvlationDetail.action"+data);
+          	 }
+        }
+    });
+}
+
+//检验输入数量
+function check_product_num(){
+	var telexg = /^\d+$/;
+	var product_num=jq("#product_num").val();      
+	if(product_num==""||!telexg.test(product_num)||parseInt(product_num)<=0){
+		  jq("#product_num").val(1);
+	}
+}
+ 
+//到货通知
+
+function doArriveMsg()
+{
+	jq.ajax({
+        type: "POST",
+        url: "/product/product_doArriveMsg.action",
+        data: "detailId=3066",
+        dataType: "html",
+        success: function(data){
+      	     if(data==1){
+          	    alert("你的到货提醒添加成功!");
+          	 }
+          	 else if(data==3)
+          	 {
+          		alert("你对该商品已经添加提醒，不能重复操作!");
+          	 }
+          	 else
+          	 {
+          	 	alert("操作失败!");
+          	 }
+        }
+    });
+}
+	function toReply(svpfId,star)
+	{
+			if( jq("#flag"+star+svpfId).val()==0)
+			{
+			  if(jq("#apply"+star+svpfId).show()==true)
+			   {
+				  jq("#apply"+star+svpfId).hide();
+				  jq("#flag"+star+svpfId).val(1);
+			   }
+			  else 
+			   {
+				  jq("#apply"+star+svpfId).show();
+				  jq("#flag"+star+svpfId).val(2);
+			   }
+		    }
+			else
+			{
+				  if( jq("#flag"+star+svpfId).val()==1)
+			      {
+					  jq("#apply"+star+svpfId).show();
+					  jq("#flag"+star+svpfId).val(0);
+				  }
+				  else 
+				  {
+					  jq("#apply"+star+svpfId).hide();
+					  jq("#flag"+star+svpfId).val(0);
+				  }
+		   }
+			jq("#bigType"+svpfId+star).html("");
+			var bigType=jq("#bigType"+svpfId+star);
+			bigType.append("<option value='' onclick=\"getContent('');\">请选择</option>");
+ 			jq.ajax({
+          		url : '/product/product_findReplyQuestionList.action?svpfId='+svpfId+'&type=1',
+  				type : 'post',
+	            dataType: "json",
+	            success: function(data){
+	                 	if(data!=1){
+	                 		for(var i=0;i<data.length;i++){
+	                 			bigType.append("<option value='"+data[i].rqId+"' title='"+data[i].rqName+"'>"+data[i].rqName+"</option>");
+	                 		}
+	 					}
+	                 	else{
+	 						alert("加载失败！");
+	 					}
+	                 }
+          }); 
+	}
+	//联动小分类
+	function showSmallType(svpfId,star)
+	{
+		jq("#smallType"+svpfId+star).html("");
+		var bigType=jq("#bigType"+svpfId+star).val();
+		var smallType=jq("#smallType"+svpfId+star);
+		smallType.append("<option value='' onclick=\"getContent('');\">请选择</option>");
+		jq.ajax({
+      		url : '/product/product_findReplyQuestionItemList.action',
+			data:{"bigType":bigType},
+      		type : 'post',
+            dataType: "json",
+            success: function(data){
+                 	if(data!=1){
+                 		for(var i=0;i<data.length;i++){
+                 			smallType.append("<option  value='"+data[i].rqiContent+"' title='"+data[i].rqiContent+"'>"+data[i].rqiItem+"</option>");
+                 		}
+ 					}
+                 	else{
+ 						alert("加载失败！");
+ 					}
+                 }
+      }); 
+	}
+	
+	function getContent(svpfId,star,content)
+	{
+		jq("#svpfMasterReply"+svpfId+star).val(content.value);
+	}
+	
+	function doReply(svpfId,star,no)
+	{
+		var svpfMasterReply=jq("#svpfMasterReply"+svpfId+star).val();
+		var svpdId=jq("#svpdId").val();
+		var path=jq("#rootpath").val();
+		jq.ajax({
+	        type: "POST",
+	        url: "/product/product_doReply.action",
+	        data: "svpfMasterReply="+svpfMasterReply+"&svpfId="+svpfId+"&path="+path,
+	        dataType: "html",
+	        success: function(data){
+	      	     if(data==1){
+	          	    alert("回复成功!");
+	          	    jq("#apply"+star+svpfId).css("display","none");
+	          	    if(star==0)
+	          	    {
+	          	    	showEvlationTotalPage(no);
+	          	    } 
+	          	    else  if(star==5)
+	          	    {
+	          	    	showEvlationStar5Page(no);
+	          	    }
+	          	    else  if(star==3)
+	          	    {
+	          	    	showEvlationStar3Page(no);
+	          	    }
+	          	    else  if(star==1)
+	          	    {
+	          	    	showEvlationStar1Page(no);
+	          	    }
+	          	 }
+	      	     else  if(data==2){
+	          	    alert("修改成功!");
+	          	    jq("#apply"+star+svpfId).css("display","none");
+	          	    if(star==0)
+	          	    {
+	          	    	showEvlationTotalPage(no);
+	          	    } 
+	          	    else  if(star==5)
+	          	    {
+	          	    	showEvlationStar5Page(no);
+	          	    }
+	          	    else  if(star==3)
+	          	    {
+	          	    	showEvlationStar3Page(no);
+	          	    }
+	          	    else  if(star==1)
+	          	    {
+	          	    	showEvlationStar1Page(no);
+	          	    }
+	          	 }
+	          	 else
+	          	 {
+	          	 	alert("回复失败!");
+	          	 }
+	        }
+	    });
+	}
+	
+	function waremove(method){
+		var left =  jq(".ware_box ul")[0].style.left.substring(0, jq(".ware_box ul")[0].style.left.length - 2);
+		var left1= 0;
+		if(method == -1){
+			left1 =parseInt(left) + 62;
+		} else{
+			left1= parseInt(left) - 62;
+		}
+	  	 if(left1 >0){
+	  		return ;
+		} 
+	  	 if(left1 <( jq(".ware_box ul li").length-5) * -62){
+	  		return ;
+		}   
+	  	
+		jq(".ware_box ul")[0].style.left = left1 + "px";
+	}
+</script>
+<!-- 链家qq相关脚本 -->
+<script type="text/javascript" src="/html/public/js/EimUtil.js"></script>
+
+
+		<style >
+			.sidebar_item {
+		    height: 304px;
+		}
+		.sidebar_item .category_item_hover .i-mc {
+		    top: 5px;
+		    width:330px;
+		    height:auto;
+		    padding-bottom:15px;
+		    z-index:-1;
+		}
+		.model_talk_div {
+		    border-radius: 4px;
+		    height: 256px;
+		    margin: 200px auto auto;
+		    position: fixed;
+		    width: 316px;
+		}
+		</style>
+		<!-- -->
+		<script type="text/javascript">
+		//加载未读取的系统消息
+		function getServerNoRead(){
+			jq.getJSON("http://talkserver.homelink.com.cn/talk/getServerNoRead.action?serverId=20007365",
+		        function(data){
+					if(data=="1"){
+						window.haveNoRead = 1;
+					}else{
+						window.haveNoRead = 0;
+					}
+		        });
+		}
+		
+		function timeAdd(){
+			window.timeCurr ++;
+			if(window.timeCurr%2==0){
+				if(window.haveNoRead==1){
+					jq("#model_talk_div_server").attr("src","/themes/images/serverHide.png");
+				}else{
+					jq("#model_talk_div_server").attr("src","/themes/images/server.gif");
+				}
+			}else{
+				jq("#model_talk_div_server").attr("src","/themes/images/server.gif");
+			}
+			
+		}
+		jq(document).ready(function() {
+					
+			
+		});
+		</script>
+		
+    </head>
+    <body>
+	    
+
+
+
+<!DOCTYPE html>
+	<head>
+		<meta charset="utf-8">
+		<title>加油站首页</title>
+		<link rel="stylesheet" type="text/css" href="/index_new/css/index.css" />
+		<script type="text/javascript" src="/index_new/js/map.js" ></script>
+		<style type="text/css">
+		/* HTML5 display-role reset for older browsers */
+		article, aside, details, figcaption, figure, 
+		footer, header, hgroup, menu, nav, section {
+			display: block;
+		}
+		body {
+			line-height: 1;
+		}
+		ol, ul {
+			list-style: none;
+		}
+		blockquote, q {
+			quotes: none;
+		}
+		blockquote:before, blockquote:after,
+		q:before, q:after {
+			content: '';
+			content: none;
+		}
+		table {
+			border-collapse: collapse;
+			border-spacing: 0;
+		}
+		/* add */
+		body {font-size:12px;}
+		img{border:0}
+		.index_top h1,h2,h3,h4,h5,h6{font-size:100%;font-weight:normal;}
+		select,input{vertical-align:middle;padding:0;}
+		.clearfix { zoom:1; }
+		.clearfix:after { content:""; display:block; clear:both; height:0; }
+		.spacer{clear:both; font-size:0; height:0; line-height:0;}
+		a{color:#333;text-decoration:none;cursor: pointer;}
+		a:hover{color:#333;text-decoration:none;cursor: pointer;}
+		i,em{ font-style: normal;}
+		
+		/*
+		购物车高度变小处理
+		*/
+		.index_nav p {
+			height:38px;
+		}
+		/*
+		菜单默认背景色
+		*/
+		.index_banner .left li{
+			background-color:white;
+		}
+		/*
+		菜单选中背景色
+		*/
+		.index_banner .left li.active{
+			border-top:1px solid #e2e2e2;
+			border-bottom:1px solid #e2e2e2;
+			border-right:1px solid #fff;
+			background-color:#51AE79;
+		}
+		</style>
+		<script type="text/javascript">
+		var productCategoryMap = new Map();//左侧子分类缓存
+		//加载未读取的系统消息
+		jq(document).ready(function() {
+			//	logo头部
+			jq('.top_search label').click(function(){
+				jq(this).hide();
+				jq('.top_search .search').show();
+			});
+			jq('.top_search .search').blur(function(){ 
+				if( jq(this).val() == '' ){
+					jq('.top_search label').show();
+				}
+			});//	logo头部
+			
+			jq('.suona_con').hover(function(){
+				jq(this).css("height","84px");
+				jq(this).append("<i class="+"fold"+"></i>");
+			}).mouseleave(function(){
+				jq(this).css("height","30px");
+				jq(this).find("i").remove(".fold");
+				
+			});
+			
+//			导航下的菜单
+			jq('.nav_all').hover(function(){
+				jq('.index_banner').show();
+			});
+			jq('.index_banner').hover(function(){
+				jq('.index_banner').show();
+			});
+			jq('.nav_all').mouseleave(function(){
+				jq('.index_banner').hide();
+			});
+			jq('.index_banner').mouseleave(function(){
+				jq('.index_banner').hide();
+			});
+			//	导航下的菜单	
+			jq('.index_banner .left li').hover(function(){
+				jq(this).addClass('active').siblings().removeClass('active');
+				//显示li下所有的箭头
+				showLiAllSpan();
+				jq(jq(this).find("a>span")[0]).css("color","#fff");//白色
+				//TODO 异步加载三级分类数据
+				getProductCategoryList(this);
+				jq('.line_float').show();
+			});
+			jq('.index_banner .left').mouseleave(function(){
+				jq(".line_float").hide();
+				jq('.index_banner .left li').removeClass('active');
+				showLiAllSpan();
+				jq('.index_banner').hide();
+			});
+			//控制箭头显示
+			function showLiAllSpan(){
+				var spanObj = jq('.index_banner .left li a span');
+				for(var i = 0,spanlen = spanObj.length;i<spanlen;i++){
+					jq(spanObj[i]).css("color","#2A7E4E");//默认箭头色
+				}
+			}
+			jq('.line_float p:last-child').css('border-bottom','none');
+			
+			//未读消息
+			jq.ajax({
+				type:"post",
+				url:"/message/message_getNoReadMessageCount.action",
+				dataType:"json",
+				success : function(data, textStatus, xhr) {
+					jq("#msgCount").html(data);
+				}
+				
+			});
+			
+			//我的账户
+			jq.ajax({
+				type:"post",
+				url:"/points/points_publicTopmyCenter.action",
+				dataType:"json",
+				success : function(data, textStatus, xhr) {
+						jq("#myCount").html(data);
+				}
+			});
+			
+			//首页公告
+			jq.ajax({
+				type:"post",
+				url:"/helpinfo/helpinfo_getNoticeTopByAjax.action",
+				dataType:"json",
+				success : function(data) {
+					var html ="";
+					for(var i = 0;i<data.length;i++){
+						html +="<li style='overflow: hidden;height:28px;display:inline-block;'><a style='height:28px;display:inline-block;' href='/helpinfo/helpinfo_getSyhelpinfoPath.action?id="+data[i].SYHI_ID+"&flag="+data[i].SYHI_TYPE+"' title='"+data[i].SYHI_TITLE+"'>"+data[i].SYHI_TITLE+"</a></li>";
+					}
+					
+					if(html!=""){
+						jq("#ul_NoticeTop").html(html);
+					}
+				}
+			});
+		});
+		/**
+		 * li对象获得子分类父类编码
+		 */
+		function getParentCode(obj){
+			var parentCode;
+			var aObj = jq(obj).find("a");
+			if(aObj.length > 0){
+				var href = jq(aObj[0]).attr("href");
+				if(href){
+					var args = href.split("?")[1];
+					parentCode = args.split("=")[1];
+				}
+			}
+			return parentCode;
+		}
+		
+		/**
+		初始化分类集合信息
+		*/
+		function initProductCategoryListHtml(categoryArray){
+			var categoryListHtml="";
+			if(categoryArray.length > 0){
+				categoryListHtml += "<p>";
+				for(var i = 1,len = categoryArray.length;i<=len;i++){
+					categoryListHtml += categoryArray[i-1];
+					//最后一个元素
+					if(i == len){
+						categoryListHtml += "</p>";
+					}else{
+						//非最后一个元素
+						if(i%5 == 0){
+						//每4个一组
+							categoryListHtml += "</p>";
+							categoryListHtml += "<p>";//下组开始
+						}
+					}
+				}
+			}
+			jq('.line_float').eq(0).html(categoryListHtml);
+		}
+		/**
+		异步获得line_float分类
+		*/
+		function getProductCategoryList(obj){
+			var parentCode = getParentCode(obj);
+			if(parentCode){
+				var categoryArrayCache = productCategoryMap.get(parentCode);//获得换存分类集合
+				if(null != categoryArrayCache && categoryArrayCache.length > 0){
+					initProductCategoryListHtml(categoryArrayCache);
+				}else{
+					var url = "/indexnew/getProductCategoryList.action";
+				   	jq.ajax({
+	                    type: "POST",
+	                    url: url,
+	                    data: {parentCode:parentCode},
+	                    dataType: 'json',
+	                    success: function(result) {
+							var categoryArray = new Array();
+							 jq(result).each(function(index) {
+							 	categoryArray.push("<a href='/product/product_searchProducts.action?categroy="+this.PC_CATEGROY_CODE+"'>"+this.PC_CATETORY_NAME+"</a>");
+	                         }); 
+	                         productCategoryMap.put(parentCode,categoryArray);
+	                         initProductCategoryListHtml(categoryArray);
+	                    }
+	                });
+				}
+			}
+		}
+	</script>
+	</head>
+	<body>
+		<div class="index_top">
+			<div class="wrapper">
+				<ul>
+					<li><a class="bl_n"><span>王旭</span>欢迎来到链家加油站！</a></li>
+					<li><a href="/message/message_messageView.action"><i>新消息</i>（<font id="msgCount">0</font>）！</a></li>
+					<li><a href="/usr/myCenter.action">我的账户（<font id="myCount">0</font>）</a></li>
+					<li>
+					
+					
+					
+		          
+				  <a href="#">
+				  
+				  
+		         	购物车(0)
+				  
+				  </a>
+					
+					</li>
+					
+					<!--  职能店铺入口，如何怕段是否是职能的员工-->
+	                <li>
+			           
+		        	</li>
+					
+					
+					
+			        
+		        	
+					<li><a href="/usr/logout.action"><em>退出</em></a></li>
+				</ul>
+			</div>
+		</div>
+		<div class="index_logo">
+			<div class="wrapper">
+				<img src="/index_new/img/logo.png" class="logo" />
+				<div class="top_search">
+					<form id="search_form" action="/product/product_searchProducts.action" method="post">
+					<input style="display: inline-block;margin-top: 9px;" id="productName" name="productName" autocomplete="off" type="text" class="search"  onfocus="javascript:jq(this).val('');" value=""/>
+					<input type="submit" class="submit" value="搜索" />
+					</form>
+				</div>
+				<div class="suona_con" style="z-index: 9999;">
+					<i class="suona"></i>
+					<ul id="ul_NoticeTop">
+						<li><a>暂未发布公告信息！ </a></li>
+					</ul>
+					<span><a style="line-height: 28px;" href="/helpinfo/helpinfo_findPath.action">MORE>></a></span>
+				</div>
+			</div>
+		</div>
+		
+		<div class="wrapper" style="position: relative;z-index:10;">
+			<!--导航下的菜单-->
+			<div class="index_nav" style="height: 39px;">
+				<span class="nav_all" style="cursor: pointer;font-size: 16px;" onclick="javascript:location.href='/product/product_searchProducts.action';">全部商品分类</span>
+				<ul>
+					<li ><a style="font-size: 16px;" href="/index.action">首页</a></li>
+					
+			          <li >
+			              <a style="font-size: 16px;" class="def" href="/olappeal/olAppeal_goAppealDkList.action">数据核对</a>
+			          </li>
+			        
+					<li><a style="font-size: 16px;" target="_blank" href="http://www.ljabc.com.cn/">链家微校</a></li>
+					<li ><a style="font-size: 16px;" href="/gongyi/gongyi_list.action">爱心捐赠</a></li>
+					<li ><a style="font-size: 16px;" href="/usr/myCenter.action">个人中心</a></li>
+					<li ><a style="font-size: 16px;" href="/helpinfo/help_beforeList.action">帮助中心</a></li>
+				</ul>
+				<p><i></i>
+				
+		          
+				  <a style="font-size: 16px;color: white;" href="#">
+				  
+				  
+		         	购物车(0)
+				  
+				  
+		         	</a>
+				</p>
+			</div>
+			<!--导航下的菜单-->
+			
+			<div class="index_banner" style="display: none;position: absolute;left:0px;top:38px;z-index: 9999;">
+				<!--主页固化的分页，其他页时没有此分类项-->
+				<div class="left">
+					<ul style="font-size: 14px;">
+					
+						<li><a href="/product/product_searchProducts.action?categroy=1002"><i class="icon_2"></i>日常用品<span>></span></a></li>
+						<li><a href="/product/product_searchProducts.action?categroy=1003"><i class="icon_3"></i>电子通讯<span>></span></a></li>
+						<li><a href="/product/product_searchProducts.action?categroy=1011"><i class="icon_7"></i>感恩回馈<span>></span></a></li>
+						<li><a href="/product/product_searchProducts.action?categroy=1004"><i class="icon_4"></i>服装衣饰<span>></span></a></li>
+						<li><a href="/product/product_searchProducts.action?categroy=1001"><i class="icon_1"></i>办公设备<span>></span></a></li>
+						<li><a href="/product/product_searchProducts.action?categroy=1014"><i class="icon_6"></i>文具耗材<span>></span></a></li>
+						<li><a href="/product/product_searchProducts.action?categroy=1013"><i class="icon_8"></i>职能服务<span>></span></a></li>
+						<li><a href="/product/product_searchProducts.action?categroy=1005"><i class="icon_5"></i>营销工具<span>></span></a></li>
+		
+							
+					</ul>
+					<div class="line_float" style="display: none;font-size: 14px;">
+					</div>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>
+
+	      <div class="main2" style="position: relative;margin:0px auto auto;width:1200px;min-height:400px;">
+	          
+
+<!-- 链家qq打开相关参数 -->
+<input type="hidden" id="userName" value="20007365"/>
+<input type="hidden" id="password" value = "Hahakaidan123"/>
+<input type="hidden" id="OpenUserName" value = ""/>
+<a href="#" id="openURL" style="display:none"></a>
+<!-- end -->
+
+<input type="hidden"  id="sId" value="641"/>
+
+<div class="nivigat">
+   <input type="hidden" id="rootpath" value="/"/>
+<input type="hidden"  id="svpdId" value="2925"/>
+   <a href="/product/product_searchProducts.action?categroy=1013" style="font-size: 18px;">职能服务</a>
+   <span>&nbsp;&nbsp;>&nbsp;&nbsp;</span>
+   <a href="/product/product_searchProducts.action?categroy=101336">签后服务</a>
+   <span>&nbsp;&nbsp;>&nbsp;&nbsp;</span>
+   <a href="/product/product_toProductDetail.action?svpdId=2925">东城预约缴税</a>
+</div>
+     <div class="ware_info">
+        <div class="ware_pic">
+           <div class="big_pic">
+           	   <div id="vertical" class="bigImg">
+	           	   <img id="midimg" height="350" width="350" src="http://xwgladmin.homelink.com.cn/upload/image/20151216144634060.jpg"/>
+	           	   <div id="winSelector" style="display: none;" ></div>
+	           </div>
+           </div>
+	        <div class="bottom_btn">
+	        		<div class="left_btn " onclick="waremove(-1)"></div>
+	        		<div class="right_btn" onclick="waremove(1)"></div>
+	        		<div class="ware_box">
+	        		   <ul style="position: absolute; left: 0px;">
+					    <li class="mone_pic_select" id="mone_pic_select_0" onMouseOver="productPicSelect(0);" style="border: 2px solid #479202;"><img id="mone_img_select_0" height="50" width="50" src="http://xwgladmin.homelink.com.cn/upload/image/20151216144634060.jpg" /></li>
+					    
+	        		   </ul>
+	        		</div>
+	        </div>
+     </div>
+      <div class="ware_text" style="position: relative;">
+        <div class="product_name" >
+        <h1 style="line-height: 30px;">东城预约缴税</h1>
+        </div>
+        
+        <!-- 右侧店铺信息 -->
+        <div id="fun_store_info" style="display:none;border:0px solid red;width:238px;padding:10px;float:right;">
+        	产品的店铺信息
+        </div>
+        
+        <div class="rate" id="market1"  style="margin-top:10px">
+            <div class="rate_item" style="height: 25px;"><span style="float:left" ><span id="svpdSorce">市场价</span>：<b style="font-family:Arial"   id="selectOldPrice">120.0</b>&nbsp;元 </span>
+            
+            </div>
+            <div class="rate_item" style="height: 30px;">
+            <span>兑&nbsp;&nbsp;换&nbsp;&nbsp;价：</span><span><font style="font-family:Arial" id="selectPrice">15</font>&nbsp;H币</span>
+            </div>
+            <div class="rate_item" id="selectCode">
+            	<span >礼品编号：ZN0870</span>
+            </div>
+            <div class="rate_item" style="height: 0px;">
+            	
+                &nbsp;<!--<img style="vertical-align:middle;margin-top: -52px;margin-left:160px; " alt="" src="/themes/images/shuang12.png"  />-->
+                
+            </div>
+            <div class="rate_item">
+                <span>评&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;价：</span>
+                <span class="product_star product_star0"></span>
+                <span class="fenzhi">|</span>
+                <a href="#"  onclick="showDetail('pingjia');">已有149人评价</a>
+            </div>
+	            <div class="rate_item">
+	              
+	              
+	               <span id="product_detail_status">库&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;存：现货</span> 
+	              
+	              
+	            </div>
+            <div class="rate_item">
+               <span>累计兑换：</span>
+               <span id="selectTotalSales" >991</span><span >&nbsp;&nbsp;件&nbsp;&nbsp;&nbsp;&nbsp;</span>
+               <span >本月兑换：</span>
+	           <span id="selectMonthSales">
+		               
+		               11
+	            </span><span>&nbsp;&nbsp;件</span>
+            </div> 
+        </div>
+        <input type="hidden" id="currDetailId" value="3066"/> 
+       	
+		<div id="fun_store_ziying" class="extInfo" style="width:236px;height:auto;display: none;position: absolute;top:-10px;left:595px;">
+			  <div class="brand-logo" style="text-align: center;">
+				<img title="江起点数码专营店" src="/themes/logo_detail.jpg">
+			  </div>
+			  <div class="seller-infor">
+				<em class="u-jd">加油站自营</em>
+			  </div>
+			  <div class="seller-pop-box">
+				<div class="J-pop-score">
+					<dl class="pop-score-detail">
+						<dd class="score-infor" style="width: 170px;">
+							<div class="score-sum">
+								<a style="color: #479202;" class="number" target="_blank" href="#">96%</a>
+							</div>
+							<div class="score-part">
+								<span class="score-desc" style="margin-left: 30px;">好&nbsp;&nbsp;评：</span>
+								<span class="score-detail" style="margin-right: 10px;">
+									<em class="number" title="9.90">96%</em>
+								</span>	
+							</div>
+							<div class="score-part">
+								<span class="score-desc" style="margin-left: 30px;">中&nbsp;&nbsp;评：</span>
+								<span class="score-detail" style="margin-right: 10px;">
+									<em class="number" title="9.88">2%</em>
+								</span>
+							</div>
+							<div class="score-part">
+								<span class="score-desc" style="margin-left: 30px;">差&nbsp;&nbsp;评：</span>
+								<span class="score-detail" style="margin-right: 10px;">
+									<em class="number" title="9.85">2%</em>
+								</span>
+							</div>
+						</dd>
+					</dl>
+				</div>
+			</div>
+            <div class="seller-pop-box" style="position: relative;border: none;">
+			  <span class="ziying_class_3" style="top: 0px;font-size: 14px;">服务支持：</span>
+			  <div class="ziying_class_4" style="top: 20px; font-size: 14px;">
+					<img alt="" src="/html/functionofstore/img/icons/guarantee_service.png"/>
+				     <span>保修服务</span>
+				     <img alt="" src="/html/functionofstore/img/icons/sale_return_15days.png"/>
+				     <span><font style="font-family:Arial">15</font>天包退</span>
+				     <img alt="" src="/html/functionofstore/img/icons/sale_return_30days.png"/>
+				     <span><font style="font-family:Arial">30</font>天包换</span>
+			  </div>
+			 </div>
+         </div>
+         
+         <div id="fun_store_disanfang" class="extInfo" style="width:236px;height:auto;display: none;position: absolute;top:-10px;left:595px;">
+			  <div class="brand-logo" style="text-align: center;">
+				<img width="236" height="75" id="fun_store_brand-logo" src="/themes/logo_detail.jpg">
+			  </div>
+			  <div class="seller-infor">
+			    <a id="fun_store_name" class="name" target="_blank" href="#"></a>
+			  </div>
+			  <div class="seller-pop-box">
+				<div class="J-pop-score">
+					<dl class="pop-score-detail">
+						<dd class="score-infor" style="width: 170px;">
+							<div class="score-sum">
+								<a style="color: #479202;" class="number" target="_blank" href="#">96%</a>
+							</div>
+							<div class="score-part">
+								<span class="score-desc" style="margin-left: 30px;">好&nbsp;&nbsp;评：</span>
+								<span class="score-detail" style="margin-right: 10px;">
+									<em class="number" title="9.90">96%</em>
+								</span>	
+							</div>
+							<div class="score-part">
+								<span class="score-desc" style="margin-left: 30px;">中&nbsp;&nbsp;评：</span>
+								<span class="score-detail" style="margin-right: 10px;">
+									<em class="number" title="9.88">2%</em>
+								</span>
+							</div>
+							<div class="score-part">
+								<span class="score-desc" style="margin-left: 30px;">差&nbsp;&nbsp;评：</span>
+								<span class="score-detail" style="margin-right: 10px;">
+									<em class="number" title="9.85">2%</em>
+								</span>
+							</div>
+						</dd>
+					</dl>
+				</div>
+			</div>
+			<div class="customer-service">
+			    <div id="fun_store_seller-phone" class="seller-phone">
+					<i class="concat-ico"></i>
+				</div>
+				<div class="service">
+					<span id="fun_store_J-im-btn" clstag="shangpin|keycount|product|dongdong_2">
+					</span>
+				</div>
+			</div>
+			<div id="fun_store_pop-shop-enter" class="pop-shop-enter">
+			</div>
+            <div class="seller-pop-box" style="position: relative;border: none;">
+			  <span class="ziying_class_3" style="top: 0px;font-size: 14px;">服务支持：</span>
+			  <div id="ziying_class_4_server" class="ziying_class_4" style="top: 20px; font-size: 14px;">
+			  </div>
+			 </div>
+         </div>
+		
+		
+        <div id="bigView" style="display:none" ><img height="700" width="700" src="" alt="" /></div>
+        <div class="buy_select" id="market2" >
+        	<input type="hidden"  value="0"  id="isflag"/>
+           <div style="display: none;">
+         	    <div class="span_colorsize" >颜色：</div>
+          		<div class="buy_select_color">
+	                
+		             <span class="span_colorsize_item"><a id="color_item_2188"  name="color_item" href="javascript:selectColorOrSize(2188,0);"  style="border: 2px solid #006e2e;">下午</a></span> 
+		          	
+		             <span class="span_colorsize_item"><a id="color_item_2187"  name="color_item" href="javascript:selectColorOrSize(2187,0);" >上午</a></span> 
+		          	
+	          	</div>
+              <input type="hidden" id="currColorId" value="2188"/> 
+           </div>
+           <div style="clear: both" class="buy_top">
+           		<div class="span_colorsize" >尺寸：</div>
+          		 <div class="buy_select_color">
+	              	 
+		              	<span class="span_colorsize_item"><a  id="size_item_2566" name="size_item" href="javascript:selectColorOrSize(2566,1);" >东城</a></span>
+		               
+		         </div>
+		         <input type="hidden" id="currSizeId" value="2566"/> 
+           </div>
+           <div class="buy_select_num">
+              <span >数量：</span>
+              <a href="javascript:void(0);" onclick="changeNum(-1);" class="add_num"><img width="15" height="15"  src="/themes/images/products/mut.jpg"/></a>
+              <input id="product_num" type="text" value="1"  style="text-align: center;font-family:Arial;" onblur="check_product_num();"/>
+              <a href="javascript:void(0);" onclick="changeNum(1);" class="mut_num" style="margin-left:5px;"><img width="15" height="15"  src="/themes/images/products/add.jpg"/></a>
+             
+            <span >库存剩余：<font id="detailStockQty" style="font-family:Arial">19009</font> 件</span>
+              
+           </div>
+           
+           <div class="buy_select_buy" >
+                <input type="button" class="add_cart" style="cursor:pointer;" onclick="addTSProductToCart(2925,1);"> 
+                <input type="button" class="add_toPayOrder" style="cursor:pointer;" onclick="addTSProductToCart(2925,2);"> 
+           </div>
+           
+        </div>
+        
+     </div> 
+     </div>
+     <div class="detail_bottom" style="font-family: Arial,微软雅黑;">
+	    <div class="detail_bottom_right">
+	        <div id="product_detail_detail" class="product_tab">
+		        <div class="product_detail_tab">
+					<a id="title_detail" href="javascript:void(0);" onclick="showDetail('detail');" style="border:2px solid #479202;border-bottom:2px solid white;color:#479202;">礼品介绍</a>
+					<a id="title_size" href="javascript:void(0);" onclick="showDetail('size');">规格参数</a>
+					<a id="title_appraise" href="javascript:void(0);" onclick="showDetail('pingjia');">礼品评价</a>
+					<a id="title_service" href="javascript:void(0);" onclick="showDetail('service');">售后保障</a>
+				 </div>
+				 <ul class="detail-list">
+					<li>礼品名称：东城预约缴税</li>
+					<li>礼品编号：ZN0870</li>
+					<li>上架时间：2015-12-16 14:46:34.0</li>
+					
+				 </ul>
+				 <div class="product_detail_detail">
+				    <div class="detail_info">
+				       <p>
+	<span style="line-height:2;font-family:Microsoft YaHei;color:#e53333;font-size:18px;"><strong>注意事项：</strong></span><br />
+<span style="color:#e53333;font-size:18px;"><span style="line-height:2;font-family:Arial;">1.</span><span style="line-height:2;font-family:Microsoft YaHei;">缴税预约服务仅针对东城行政辖区内的业务单.</span></span><br />
+<span style="color:#e53333;font-size:18px;"><span style="line-height:2;font-family:Arial;">2.</span><span style="line-height:2;font-family:Microsoft YaHei;">具备缴税条件（全款生成网签合同，贷款已批贷）的业务单可通过链家加油站提交预约申请.</span></span><br />
+<span style="color:#e53333;font-size:18px;"><span style="line-height:2;font-family:Arial;">3.</span><span style="line-height:2;font-family:Microsoft YaHei;">工作日每天发放预约号</span><span style="line-height:2;font-family:Arial;">25</span><span style="line-height:2;font-family:Microsoft YaHei;">个，上午</span><span style="line-height:2;font-family:Arial;">10</span><span style="line-height:2;font-family:Microsoft YaHei;">个，下午</span><span style="line-height:2;font-family:Arial;">15</span><span style="line-height:2;font-family:Microsoft YaHei;">个；当天可预约一周以内的缴税号，发号时间为早上</span><span style="line-height:2;font-family:Arial;">9:00</span></span> 
+</p>
+<p>
+	<span style="color:#e53333;font-size:18px;"><span style="line-height:2;font-family:Arial;"></span></span><span style="color:#e53333;font-size:18px;"><span style="line-height:2;font-family:Arial;">4.</span><span style="line-height:2;font-family:Microsoft YaHei;">工作日</span><span style="line-height:2;font-family:Arial;">9:00～18:00</span><span style="line-height:2;font-family:Microsoft YaHei;">之间下订单，当天反馈预约结果；节假日顺延。</span></span><br />
+<span style="line-height:2;font-family:Microsoft YaHei;color:#e53333;font-size:18px;"><strong>操作流程：</strong></span><br />
+<span style="color:#e53333;font-size:18px;"><span style="line-height:2;font-family:Arial;">1</span><span style="line-height:2;font-family:Arial;color:#e53333;font-size:18px;">.</span><span style="line-height:2;font-family:Microsoft YaHei;">根据业务单进程，与客户业主确认要预约的缴税时间.</span></span><br />
+<span style="color:#e53333;font-size:18px;"><span style="line-height:2;font-family:Arial;">2.</span><span style="line-height:2;font-family:Microsoft YaHei;">信息提交必须真实有效，杜绝占位抢号现象.</span></span><br />
+<span style="line-height:2;font-family:Microsoft YaHei;color:#e53333;font-size:18px;">需提交信息：网签合同号+客户姓名+客户身份证号+该笔业务单过户专员姓名.</span><br />
+<span style="line-height:2;font-family:Microsoft YaHei;color:#e53333;font-size:18px;"><strong>服务说明：</strong></span><br />
+<span style="color:#e53333;font-size:18px;"><span style="line-height:2;font-family:Arial;">1.</span><span style="line-height:2;font-family:Microsoft YaHei;">所有预约信息，完全通过经纪人提供信息完成预约，确保预约准确性.</span></span><br />
+<span style="color:#e53333;font-size:18px;"><span style="line-height:2;font-family:Arial;">2.</span><span style="font-family:Microsoft YaHei;"><span style="line-height:2;">取消预约：如因特殊原因不能按照预约时间如期办理的，请在预约办理前一个工作日</span><span style="line-height:2;font-family:Arial;">15：00</span><span style="line-height:2;">之前通知产品联系人，我们会及时帮你取消.</span></span></span><br />
+<span style="line-height:2;font-family:Microsoft YaHei;color:#e53333;font-size:18px;"><strong>产品咨询:</strong></span><br />
+<span style="color:#e53333;font-size:18px;"><span style="line-height:2;font-family:Microsoft YaHei;">产品咨询电话：</span><span style="line-height:2;font-family:Arial;">59724546，<span style="font-family:Arial;color:#e53333;font-size:16px;"><span style="font-family:'Microsoft YaHei';font-size:16px;">因为话务繁忙，如果暂时打不通，可换个时间再拨打，感谢支持！</span></span></span></span> 
+</p>
+				    </div>
+				 </div>
+			 </div>
+			 <div id="product_detail_size" style="display: none;" class="product_tab">
+		        <div class="product_detail_tab">
+					<a id="title_detail" href="javascript:void(0);" onclick="showDetail('detail');">礼品介绍</a>
+					<a id="title_size" href="javascript:void(0);" onclick="showDetail('size');" style="border:2px solid #479202;border-bottom:2px solid white;color:#479202;">规格参数</a>
+					<a id="title_appraise" href="javascript:void(0);" onclick="showDetail('pingjia');">礼品评价</a>
+					<a id="title_service" href="javascript:void(0);" onclick="showDetail('service');">售后保障</a>
+				 </div>
+				 <div class="detail_info">
+					 
+				 </div>
+			 </div>
+			 <div id="product_detail_pingjia" style="display: none;min-height:0px;" class="product_tab">
+		        <div class="product_detail_tab">
+					<a id="title_detail" href="javascript:void(0);" onclick="showDetail('detail');">礼品介绍</a>
+					<a id="title_size" href="javascript:void(0);" onclick="showDetail('size');">规格参数</a>
+					<a id="title_appraise" href="javascript:void(0);" onclick="showDetail('pingjia');" class="tab_select" style="border:2px solid #479202;border-bottom:2px solid white;color:#479202;">礼品评价</a>
+					<a id="title_service" href="javascript:void(0);" onclick="showDetail('service');">售后保障</a>
+				 </div>
+			 </div>
+			 <div id="product_detail_service" style="display: none;" class="product_tab">
+		        <div class="product_detail_tab">
+					<a id="title_detail" href="javascript:void(0);" onclick="showDetail('detail');">礼品介绍</a>
+					<a id="title_size" href="javascript:void(0);" onclick="showDetail('size');">规格参数</a>
+					<a id="title_appraise" href="javascript:void(0);" onclick="showDetail('pingjia');">礼品评价</a>
+					<a id="title_service" href="javascript:void(0);" onclick="showDetail('service');" style="border:2px solid #479202;border-bottom:2px solid white;color:#479202;">售后保障</a>
+				 </div>
+				 <ul class="detail-list">
+					
+				 </ul>
+			 </div>
+			 <div class="product_tab">
+				 <div class="pingjia_div">礼品评价</div>
+				 <div class="pingjia_content">
+				    <div class="content_left">
+				      <span id="changeFont1" style="font-weight: bold;"><font id="changeFont1" >96</font>%</span>
+				      <span style="display:block;margin-left:15px;color: rgb(153, 153, 153);font-size:14px;">好评率</span>
+				    </div>
+				    <div class="percent">
+						<div class="percent_item">
+						   <span>好&nbsp;&nbsp;&nbsp;&nbsp;评</span>
+						   <span id="changeFont" style="color:rgb(153, 153, 153);font-size:13px">(96%)</span>
+						   <span class="percent_process_bg"><span class="percent_process" style="width:192px;"></span></span>
+						</div>
+						<div class="percent_item">
+						   <span>中&nbsp;&nbsp;&nbsp;&nbsp;评</span>
+						   <span id="changeFont" style="color:rgb(153, 153, 153);font-size:13px">(2%)</span>
+						   <span class="percent_process_bg"><span class="percent_process" style="width:4px;"></span></span>
+						</div>
+						<div class="percent_item">
+						   <span>差&nbsp;&nbsp;&nbsp;&nbsp;评</span>
+						   <span id="changeFont" style="color:rgb(153, 153, 153);font-size:13px">(2%)</span>
+						   <span class="percent_process_bg"><span class="percent_process" style="width:4px;"></span></span>
+						</div>
+					</div>  
+					<div class="pingjia_action">
+					     <span>我在加油站兑换过此礼品</span>
+					     <input onclick="evlationProduct();" type="button" class="admin_input_button" value="我要评价"/>
+					     <span><a target="_blank" href="/helpinfo/help_beforeList.action?infoId=322" style="color: rgb(0, 94, 167);">[规则]</a></span>
+					</div>
+                 </div>
+			 </div>
+			 <div id="product_detail_evlution_total" style="margin-top:10px;">
+		        <div class="product_detail_tab">
+					<a id="title_appraise" href="javascript:void(0);" onclick="showEvlation('total');" style="border:2px solid #479202;border-bottom:2px solid white;color:#479202;">全部评价(149)</a>
+					<a id="title_appraise" href="javascript:void(0);" onclick="showEvlation('star5');">好评(144)</a>
+					<a id="title_appraise" href="javascript:void(0);" onclick="showEvlation('star3');">中评(3)</a>
+					<a id="title_appraise" href="javascript:void(0);" onclick="showEvlation('star1');">差评(2)</a>
+				 </div>
+				 <div id="detail_evlation_List_total" class="product_detail_detail">
+				    <img style="margin-left:450px;margin-top:50px;" width="16" height="16" src="/themes/images/products/load.gif"/>
+				 </div>
+			 </div>
+			 <div id="product_detail_evlution_star5" style="margin-top:10px;display:none;">
+		        <div class="product_detail_tab">
+					<a id="title_appraise" href="javascript:void(0);" onclick="showEvlation('total');">全部评价(149)</a>
+					<a id="title_appraise" href="javascript:void(0);" onclick="showEvshowEvlationlation('star5');" style="border:2px solid #479202;border-bottom:2px solid white;color:#479202;">好评(144)</a>
+					<a id="title_appraise" href="javascript:void(0);" onclick="showEvlation('star3');">中评(3)</a>
+					<a id="title_appraise" href="javascript:void(0);" onclick="showEvlation('star1');">差评(2)</a>
+				 </div>
+				 <div id="detail_evlation_List_star5" class="product_detail_detail">
+				    <img style="margin-left:450px;margin-top:50px;" width="16" height="16" src="/themes/images/products/load.gif"/>
+				 </div>
+			 </div>
+			 <div id="product_detail_evlution_star3" style="margin-top:10px;display:none;">
+		        <div class="product_detail_tab">
+					<a id="title_appraise" href="javascript:void(0);" onclick="showEvlation('total');">全部评价(149)</a>
+					<a id="title_appraise" href="javascript:void(0);" onclick="showEvlation('star5');">好评(144)</a>
+					<a id="title_appraise" href="javascript:void(0);" onclick="showEvlation('star3');" style="border:2px solid #479202;border-bottom:2px solid white;color:#479202;">中评(3)</a>
+					<a id="title_appraise" href="javascript:void(0);" onclick="showEvlation('star1');">差评(2)</a>
+				 </div>
+				 <div id="detail_evlation_List_star3" class="product_detail_detail">
+				    <img style="margin-left:450px;margin-top:50px;" width="16" height="16" src="/themes/images/products/load.gif"/>
+				 </div>
+			 </div>
+			 <div id="product_detail_evlution_star1" style="margin-top:10px;display:none;">
+		        <div class="product_detail_tab">
+					<a id="title_appraise" href="javascript:void(0);" onclick="showEvlation('total');">全部评价(149)</a>
+					<a id="title_appraise" href="javascript:void(0);" onclick="showEvlation('star5');">好评(144)</a>
+					<a id="title_appraise" href="javascript:void(0);" onclick="showEvlation('star3');">中评(3)</a>
+					<a id="title_appraise" href="javascript:void(0);" onclick="showEvlation('star1');" style="border:2px solid #479202;border-bottom:2px solid white;color:#479202;">差评(2)</a>
+				 </div>
+				 <div id="detail_evlation_List_star1" class="product_detail_detail">
+				    <img style="margin-left:450px;margin-top:50px;" width="16" height="16" src="/themes/images/products/load.gif"/>
+				 </div>
+			 </div>
+	    </div>
+	    <div class="detail_bottom_left">
+            <div class="title_box" style="width:258px;height:30px;border-bottom:none;">
+				<div class="title_top">
+					<span>同类礼品</span><a style="margin-left:155px;" href="/product/product_searchProducts.action?categroy=1013">更多&gt;&gt;</a>
+				</div>
+			</div>
+			<div class="detail_Hot_sell" id="main_Hot_sell">
+			   <ul>
+		           <li>
+		            <img class="load_procuct" width="16" height="16" src="/themes/images/products/load.gif"/>
+		           </li>
+		           <li>
+		            <img class="load_procuct" width="16" height="16" src="/themes/images/products/load.gif"/>
+		           </li>
+		           <li>
+		            <img class="load_procuct" width="16" height="16" src="/themes/images/products/load.gif"/>
+		           </li>
+		           <li>
+		            <img class="load_procuct" width="16" height="16" src="/themes/images/products/load.gif"/>
+		           </li>
+		            <li>
+		            <img class="load_procuct" width="16" height="16" src="/themes/images/products/load.gif"/>
+		            </li>
+		            <li>
+		            <img class="load_procuct" width="16" height="16" src="/themes/images/products/load.gif"/>
+		           </li>
+		       </ul>
+			</div>
+	    </div>
+	    <div class="product_detail_bottom">
+	        <div class="title_box" style="width:1198px;height:30px;">
+			      <div class="title_top">
+			         <span>热销礼品</span>
+			         <a href="/product/product_searchProducts.action?showType=2" style="margin-left:1088px;">更多>></a>
+			      </div>
+			</div>
+			<div class="main_Hot_sell" id="main_recommend">
+			   <ul>
+			           <li>
+			            <img class="load_procuct" width="16" height="16" src="/themes/images/products/load.gif"/>
+			           </li>
+			           <li>
+			            <img class="load_procuct" width="16" height="16" src="/themes/images/products/load.gif"/>
+			           </li>
+			           <li>
+			            <img class="load_procuct" width="16" height="16" src="/themes/images/products/load.gif"/>
+			           </li>
+			           <li>
+			            <img class="load_procuct" width="16" height="16" src="/themes/images/products/load.gif"/>
+			           </li>
+			           <li>
+			            <img class="load_procuct" width="16" height="16" src="/themes/images/products/load.gif"/>
+			           </li>
+			           <li>
+			            <img class="load_procuct" width="16" height="16" src="/themes/images/products/load.gif"/>
+			           </li>
+			        </ul>
+			</div>
+		</div>
+	 </div> 
+<div id="productType_model_talk_div" class="model_talk_div" style="width:486px; top:50px; left:0px;display:none;height:155px;z-index:9999;">
+	   <div class="model_talk_content" style="height:140px;width:470px;">
+	       <div class="talk_content_top" style="width:470px;">
+	       <b>系统提示</b>
+	       <span class="close_talk" onclick="javascript:jq('#productType_model_talk_div').css('display','none')"></span>
+	       </div>
+	       <div class="talk_content_mid" style="height:60px;width:450px;">
+	          <p style="width:450px;">&nbsp;&nbsp;&nbsp;&nbsp;您的购物车中已有 
+	          
+	          
+	                          ，该礼品为
+	          
+	          
+	                         不可以和现有购物车中的礼品同时结算，请先将购物中的礼品结算生成订单！
+	          </p>
+	       </div>
+	       <div class="talk_content_bottom" style="width:470px;">
+	          <input class="admin_input_button" type="button" value="确定" onclick="javascript:jq('#productType_model_talk_div').css('display','none')"/>
+	       </div>
+	   </div>
+</div>
+<div id="productCategory_model_talk_div" class="model_talk_div" style="width:486px; top:50px; left:0px;display:none;height:155px;z-index:9999;">
+	   <div class="model_talk_content" style="height:140px;width:470px;">
+	       <div class="talk_content_top" style="width:470px;">
+	       <b>系统提示</b>
+	       <span class="close_talk" onclick="javascript:jq('#productCategory_model_talk_div').css('display','none')"></span>
+	       </div>
+	       <div class="talk_content_mid" style="height:60px;width:450px;">
+	          <p style="width:450px;">&nbsp;&nbsp;&nbsp;&nbsp;您的购物车中已有 
+	          【营销工具礼品】
+	          
+	                          ，该礼品不可以和现有购物车中的礼品同时结算，请先将购物中的礼品结算生成订单！
+	          </p>
+	       </div>
+	       <div class="talk_content_bottom" style="width:470px;">
+	          <input class="admin_input_button" type="button" value="确定" onclick="javascript:jq('#productCategory_model_talk_div').css('display','none')"/>
+	       </div>
+	   </div>
+</div>
+<div id="productCategory_market_talk_div" class="model_talk_div" style="width:486px; top:50px; left:0px;display:none;height:155px;z-index:9999;">
+	   <div class="model_talk_content" style="height:140px;width:470px;">
+	       <div class="talk_content_top" style="width:470px;">
+	       <b>系统提示</b>
+	       <span class="close_talk" onclick="javascript:jq('#productCategory_market_talk_div').css('display','none')"></span>
+	       </div>
+	       <div class="talk_content_mid" style="height:60px;width:450px;">
+	          <p style="width:450px;">&nbsp;&nbsp;&nbsp;&nbsp;您的购物车中已有 
+	          【电子工具礼品】
+	          
+	                          ，该礼品不可以和现有购物车中的礼品同时结算，请先将购物中的礼品结算生成订单！
+	          </p>
+	       </div>
+	       <div class="talk_content_bottom" style="width:470px;">
+	          <input class="admin_input_button" type="button" value="确定" onclick="javascript:jq('#productCategory_market_talk_div').css('display','none')"/>
+	       </div>
+	   </div>
+</div>
+<div id="expressFlag_talk_div" class="model_talk_div" style="width:486px; top:50px; left:0px;display:none;height:155px;z-index:9999;">
+	   <div class="model_talk_content" style="height:140px;width:470px;">
+	       <div class="talk_content_top" style="width:470px;">
+	       <b>系统提示</b>
+	       <span class="close_talk" onclick="javascript:jq('#expressFlag_talk_div').css('display','none')"></span>
+	       </div>
+	       <div class="talk_content_mid" style="height:60px;width:450px;">
+	          <p style="width:450px;">&nbsp;&nbsp;&nbsp;&nbsp;您的购物车中已有 
+	          
+	                          ，该礼品不可以和现有购物车中的礼品同时结算，请先将购物中的礼品结算生成订单！
+	          </p>
+	       </div>
+	       <div class="talk_content_bottom" style="width:470px;">
+	          <input class="admin_input_button" type="button" value="确定" onclick="javascript:jq('#expressFlag_talk_div').css('display','none')"/>
+	       </div>
+	   </div>
+</div>
+<div id="express_talk_div" class="model_talk_div" style="width:486px; top:50px; left:0px;display:none;height:155px;z-index:9999;">
+	   <div class="model_talk_content" style="height:140px;width:470px;">
+	       <div class="talk_content_top" style="width:470px;">
+	       <b>系统提示</b>
+	       <span class="close_talk" onclick="javascript:jq('#express_talk_div').css('display','none')"></span>
+	       </div>
+	       <div class="talk_content_mid" style="height:60px;width:450px;">
+	          <p style="width:450px;">&nbsp;&nbsp;&nbsp;&nbsp;您的购物车中已有 
+	          
+	                          ，该礼品不可以和现有购物车中的礼品同时结算，请先将购物中的礼品结算生成订单！
+	          </p>
+	       </div>
+	       <div class="talk_content_bottom" style="width:470px;">
+	          <input class="admin_input_button" type="button" value="确定" onclick="javascript:jq('#express_talk_div').css('display','none')"/>
+	       </div>
+	   </div>
+</div>
+<div id="no_brand_talk_div" class="model_talk_div" style="width:486px; top:50px; left:0px;display:none;height:155px;z-index:9999;">
+	   <div class="model_talk_content" style="height:140px;width:470px;">
+	       <div class="talk_content_top" style="width:470px;">
+	       <b>系统提示</b>
+	       <span class="close_talk" onclick="javascript:jq('#no_brand_talk_div').css('display','none')"></span>
+	       </div>
+	       <div class="talk_content_mid" style="height:60px;width:450px;">
+	          <p style="width:450px;">&nbsp;&nbsp;&nbsp;&nbsp;您的购物车中已有 
+	          	【品牌中心专属设计服务礼品】
+	                          ，该礼品不可以和现有购物车中的礼品同时结算，请先将购物中的礼品结算生成订单！
+	          </p>
+	       </div>
+	       <div class="talk_content_bottom" style="width:470px;">
+	          <input class="admin_input_button" type="button" value="确定" onclick="javascript:jq('#no_brand_talk_div').css('display','none')"/>
+	       </div>
+	   </div>
+</div>
+
+	      </div>
+	    
+<div class="footer1" style="height:39px;position: relative;">
+  <img src="/themes/images/bottom.jpg"/>
+  <span style="position: absolute;left: 230px;top:19px;color: #455554;font-size: 14px;background: white;">
+				座机：010-59106869&nbsp;&nbsp;&nbsp;&nbsp;
+					010-59106840&nbsp;&nbsp;&nbsp;&nbsp;
+					010-59106899&nbsp;&nbsp;&nbsp;&nbsp;
+					010-59103614
+				</span>
+				<span style="position: absolute;left: 710px;top:19px;color: #455554;font-size: 14px;background: white;">
+				或链家QQ留言&nbsp;&nbsp;常建蕊&nbsp;&nbsp;唐银涛
+				</span>
+				<span style="position: absolute;left: 955px;top:19px;color: #455554;font-size: 14px;background: white;">
+				服务时间：周一到周五 9:00 - 17:30
+				</span>
+</div>
+	     <!-- 暂时屏蔽   不予上线 
+    	<div class="model_talk_div" style="background: url(#);border:none; height: 210px;top:60px;width:60px; right:0px;z-index: 999;cursor: pointer;margin-top: 0px;">
+		   
+		   
+		   	 <a style="display: block;height: 210px;width:60px;" target="_blank" href="http://talkserver.homelink.com.cn/talk/toUserTalkSelect.action?userCode=20007365"><img  id="model_talk_div_server" src="/themes/images/server.gif"></a>
+		   
+	 	</div>
+	 	-->
+    </body>
+</html>
+<script languange="javascript">
+
+</script>
+
+
+
+
+
+curl 'http://bjxwgl.homelink.com.cn/order/order_payOrderTSByAccount.action' -H 'Cookie: JSESSIONID=EFF4145DCE691030B152DC3A5C556FFC' -H 'Origin: http://bjxwgl.homelink.com.cn' -H 'Accept-Encoding: gzip, deflate' -H 'Accept-Language: zh-CN,zh;q=0.8,en;q=0.6' -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.87 Safari/537.36' -H 'Content-Type: application/x-www-form-urlencoded' -H 'Accept: */*' -H 'Referer: http://bjxwgl.homelink.com.cn/product/product_toOrderTSApply.action' -H 'X-Requested-With: XMLHttpRequest' -H 'Connection: keep-alive' --data 'tsname=%E7%8E%8B%E6%97%AD&tsuserid=20007365&marketemail=wangx25&tsphone=13401198796&wangqianhetong=327867&kehuxingming=%E5%88%98%E6%96%8C&kehushengfenzheng=432342343242323&guohuzhuanyuan=%E7%8E%8B%E6%97%AD&yuyueshijian=2016-04-07&dateType=%E4%B8%8A%E5%8D%88&svpdUpLoadType=-1&spvdName=%E4%B8%9C%E5%9F%8E%E9%A2%84%E7%BA%A6%E7%BC%B4%E7%A8%8E&svpdUpLoadTypeDetail=-1&spvdCode=ZN0870&svpdDetailCategory=101336&checkBoxProduct=2925_2188_2566&eoContent=%E7%BD%91%E7%AD%BE%E5%90%88%E5%90%8C%E5%8F%B7%EF%BC%9A327867%2C%E5%AE%A2%E6%88%B7%E5%A7%93%E5%90%8D%EF%BC%9A%E5%88%98%E6%96%8C%2C%E5%AE%A2%E6%88%B7%E8%BA%AB%E4%BB%BD%E8%AF%81%E5%8F%B7%EF%BC%9A432342343242323%2C%E8%BF%87%E6%88%B7%E4%B8%93%E5%91%98%EF%BC%9A%E7%8E%8B%E6%97%AD%2C%E9%A2%84%E7%BA%A6%E6%97%B6%E9%97%B4%EF%BC%9A2016-04-07%2C%E4%B8%8A%E5%8D%88&post_account=309463' --compressed
+
+
+
+curl 'http://bjxwgl.homelink.com.cn/order/order_payOrderTSByAccount.action' -H 'Cookie: JSESSIONID=EFF4145DCE691030B152DC3A5C556FFC' -H 'Origin: http://bjxwgl.homelink.com.cn' -H 'Accept-Encoding: gzip, deflate' -H 'Accept-Language: zh-CN,zh;q=0.8,en;q=0.6' -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.87 Safari/537.36' -H 'Content-Type: application/x-www-form-urlencoded' -H 'Accept: */*' -H 'Referer: http://bjxwgl.homelink.com.cn/product/product_toOrderTSApply.action' -H 'X-Requested-With: XMLHttpRequest' -H 'Connection: keep-alive' --data 'tsuserid=20007365&svpdUpLoadType=-1&wangqianhetong=32132&spvdCode=ZN0870&dateType=%E4%B8%8B%E5%8D%88&tsphone=13401198796&svpdUpLoadTypeDetail=-1&post_account=37106&eoContent=test&checkBoxProduct=2925_2188_2566&guohuzhuanyuan=%E7%8E%8B%E6%97%AD&svpdDetailCategory=101336&spvdName=%E4%B8%9C%E5%9F%8E%E9%A2%84%E7%BA%A6%E7%BC%B4%E7%A8%8E&yuyueshijian=2016-04-07&kehuxingming=%E5%88%98%E6%96%8C&marketemail=wangx25&tsname=%E7%8E%8B%E6%97%AD&kehushengfenzheng=632726198607163373' --compressed
+
