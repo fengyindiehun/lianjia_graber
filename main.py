@@ -4,6 +4,7 @@ import urllib
 import urllib2
 import sys
 from bs4 import BeautifulSoup
+import db
 
 #####################################################################
 #GLOBAL VAR FOR USER
@@ -52,7 +53,7 @@ def get_captcha():
     fd_write.write(captcha_content)
     fd_write.close()
 
-def login(username, password, captcha):
+def user_login(username, password, captcha):
     jsessionid = get_jsessionid_from_file()
     url = 'http://bjxwgl.homelink.com.cn/usr/login.action'
     opener = urllib2.build_opener()
@@ -90,7 +91,7 @@ def dongchengjiaoshui_getuserinfo(jsessionid):
     data_encoded = urllib.urlencode(form_data)
     fd_read = opener.open(url)
     html_content = fd_read.read()
-    if html_content is None or html_content is '':
+    if html_content is None or html_content == '':
         print 'http://bjxwgl.homelink.com.cn/product/product_toOrderTSApply.action failed'
     else:
         print 'http://bjxwgl.homelink.com.cn/product/product_toOrderTSApply.action success'
@@ -102,7 +103,7 @@ def dongchengjiaoshui_submitorder(jsessionid, form_data):
     opener = urllib2.build_opener()
     opener.addheaders.append(('Cookie', 'JSESSIONID=' + jsessionid))
     data_encoded = urllib.urlencode(form_data)
-    #print 'dongchengjiaoshui form_data:' + data_encoded
+    print 'dongchengjiaoshui form_data:' + data_encoded
     fd_read = opener.open(url, data_encoded)
     html_content = fd_read.read()
     if html_content is '1':
@@ -161,8 +162,7 @@ def parse_cart_info(cart_info):
     global tsphone
     global accounts
 
-    #soup = BeautifulSoup(cart_info, 'html.parser', from_encoding='latin-1')
-    soup = BeautifulSoup(cart_info, from_encoding='latin-1')
+    soup = BeautifulSoup(cart_info, 'html.parser', from_encoding='latin-1')
     tsname = soup.find(id='post_user_input').get('value').encode('utf-8')
     tsuserid = soup.find(id='post_uid_input').get('value').encode('utf-8')
     marketemail = soup.find(name='input', attrs={'name':'marketemail'}).get('value').encode('utf-8')
@@ -184,16 +184,16 @@ def get_dongchengjiaoshui_post_datas():
     svpdDetailCategory = '101336'
     checkBoxProduct = '2925_2188_2566'
 
-    for line in open('dongchengjiaoshui.txt', 'r'):
-        order_info = line.strip('\n').split()
-        if order_info[0] is not '1':
+    #for line in open('dongchengjiaoshui.txt', 'r'):
+    for order_info in db.dongchengjiaoshui_select():
+        if order_info[6] != '0':
             continue
-        wangqianhetong = order_info[1]
-        kehuxingming = order_info[2]
-        kehushengfenzheng = order_info[3]
-        guohuzhuanyuan = order_info[4]
-        yuyueshijian = order_info[5]
-        dateType = order_info[6]
+        wangqianhetong = order_info[0]
+        kehuxingming = order_info[1]
+        kehushengfenzheng = order_info[2]
+        guohuzhuanyuan = order_info[3]
+        yuyueshijian = order_info[4]
+        dateType = order_info[5]
         eoContent = '网签合同号：' + wangqianhetong + ',客户姓名：' + kehuxingming + ',身份证号：' + kehushengfenzheng + ',过户专员：' + guohuzhuanyuan + ',预约时间：' + yuyueshijian + ',' + dateType
         #post_info_map = {'tsname' : tsname, 'tsuserid' : tsuserid, 'marketemail' : marketemail,
         #                 'tsphone' : tsphone, 'wangqianhetong' : wangqianhetong, 'kehuxingming' : kehuxingming,
@@ -229,10 +229,12 @@ def dongchengjiaoshui():
             #    removed_datas.append(post_data)
             if dongchengjiaoshui_submitorder(jsessionid, post_data) == '1':
                 removed_datas.append(post_data)
+                dongchengjiaoshui_addtocart(jsessionid)
                 break
     #print removed_datas
     post_datas = [data for data in post_datas if data not in removed_datas]
     #print post_datas
 
 if __name__ == '__main__':
+    db.connect_db()
     dongchengjiaoshui()

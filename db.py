@@ -35,7 +35,7 @@ def dongchengjiaoshui_insert(info):
     try:
         con.execute('insert into dongchengjiaoshui (hetonghao, kehuxingming, kehushenfenzheng,'
                     'guohuzhuanyuan, yuyueshijian, dateType, status)'
-                    'values (?, ?, ?, ?, ?)', info)
+                    'values (?, ?, ?, ?, ?, ?, ?)', info)
         con.commit()
     except Exception:
         print 'dongchengjiaoshui_insert error'
@@ -57,12 +57,11 @@ def dongchengjiaoshui_update(info):
 
 def dongchengjiaoshui_select():
     cur = con.cursor()
-    cur.execute('select * from dongchengjiaoshui')
+    cur.execute('select hetonghao, kehuxingming, kehushenfenzheng,'
+                'guohuzhuanyuan, yuyueshijian, dateType, status from dongchengjiaoshui')
     return cur.fetchall()
     try:
-        con.execute('select hetonghao, kehuxingming, kehushenfenzheng,'
-                    'guohuzhuanyuan, yuyueshijian, dateType, status from dongchengjiaoshui')
-        return con.fetchall()
+        print 'a'
     except Exception:
         print 'dongchengjiaoshui_select error'
         connect_db()
@@ -70,14 +69,14 @@ def dongchengjiaoshui_select():
 if __name__ == '__main__':
     connect_db()
     dongchengjiaoshui_create_table()
-    #a = ('123', 'ss', '456', 'mm', '0')
-    #for i in a:
-    #    print type(i)
-    #    dongchengjiaoshui_insert(a)
-    #    #dongchengjiaoshui_insert(['323', 'ss', '456', 'mm', '0'])
-    #    #dongchengjiaoshui_insert(('223', 'ss', '456', 'mm', '0'))
-    #    #dongchengjiaoshui_update(('897', 'hh', '234', 'll', '1', 2))
-    #    for item in dongchengjiaoshui_select():
-    #        for i in item:
-    #            print type(i)
-    #            close_db()
+    a = ('123', 'ss', '456', 'mm', '0')
+    for i in a:
+        print type(i)
+        dongchengjiaoshui_insert(a)
+        #dongchengjiaoshui_insert(['323', 'ss', '456', 'mm', '0'])
+        #dongchengjiaoshui_insert(('223', 'ss', '456', 'mm', '0'))
+        #dongchengjiaoshui_update(('897', 'hh', '234', 'll', '1', 2))
+        for item in dongchengjiaoshui_select():
+            for i in item:
+                print type(i)
+                close_db()

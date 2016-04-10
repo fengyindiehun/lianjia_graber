@@ -2,40 +2,70 @@ from flask import Flask
 from flask import render_template
 from flask import request
 import main
+import db
 
 app = Flask(__name__)
 
 @app.route('/', methods=['GET', 'POST'])
 def init():
-    main.get_jsessionid()
-    main.get_captcha()
-    return render_template('login.html')
-
-#@app.route('/success', methods=['GET', 'POST'])
-#def success():
+    return render_template('index.html')
 
 @app.route('/login', methods=['GET', 'POST'])
-def user_login():
+def login():
+    return render_template('login.html')
+
+@app.route('/dologin', methods=['GET', 'POST'])
+def dologin():
+    main.get_jsessionid()
+    main.get_captcha()
     username = None
     password = None
     captcha = None
     if request.method == 'POST':
         print 'Login method is Post'
-        username = request.form.get('username')
-        password = request.form.get('password')
-        captcha = request.form.get('captcha')
+        username = request.form.get('username').encode('utf-8')
+        password = request.form.get('password').encode('utf-8')
+        captcha = request.form.get('captcha').encode('utf-8')
     else:
         print 'Login method is Get'
-        username = request.args.get('username')
-        password = request.args.get('password')
-        captcha = request.args.get('captcha')
-    main.login(username, password, captcha)
+        username = request.args.get('username').encode('utf-8')
+        password = request.args.get('password').encode('utf-8')
+        captcha = request.args.get('captcha').encode('utf-8')
 
-@app.route('/addinfo', methods=['GET', 'POST'])
-def add_info():
-    fd = open('jsessionid.txt', 'r')
-    jsessionid = fd.readline()
-    fd.close()
+    main.user_login(username, password, captcha)
+    return render_template('index.html')
+
+@app.route('/dongchengjiaoshui_add', methods=['GET', 'POST'])
+def dongchengjiaoshui_add():
+    return render_template('dongchengjiaoshui_add.html')
+
+@app.route('/dodongchengjiaoshui_add', methods=['GET', 'POST'])
+def dodongchengjiaoshui_add():
+    hetonghao = None
+    kehuxingming = None
+    shenfenzheng = None
+    guohuzhuanyuan = None
+    status = '0'
+    if request.method == 'POST':
+        print 'dodongchengjiaoshui_add method is Post'
+        hetonghao = request.form.get('hetonghao').encode('utf-8')
+        kehuxingming = request.form.get('kehuxingming').encode('utf-8')
+        shenfenzheng = request.form.get('shenfenzheng').encode('utf-8')
+        guohuzhuanyuan = request.form.get('guohuzhuanyuan').encode('utf-8')
+        yuyueshijian = request.form.get('yuyueshijian').encode('utf-8')
+        shijianduan = request.form.get('shijianduan').encode('utf-8')
+    else:
+        print 'dodongchengjiaoshui_add method is Get'
+        hetonghao = request.args.get('hetonghao').encode('utf-8')
+        kehuxingming = request.args.get('kehuxingming').encode('utf-8')
+        shenfenzheng = request.args.get('shenfenzheng').encode('utf-8')
+        guohuzhuanyuan = request.args.get('guohuzhuanyuan').encode('utf-8')
+        yuyueshijian = request.args.get('yuyueshijian').encode('utf-8')
+        shijianduan = request.args.get('shijianduan').encode('utf-8')
+
+    db.connect_db()
+    db.dongchengjiaoshui_insert((hetonghao, kehuxingming, shenfenzheng, guohuzhuanyuan, yuyueshijian, shijianduan, status))
+    return render_template('index.html')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8000, debug=True)
