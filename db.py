@@ -18,6 +18,7 @@ def close_db():
     except Exception:
         print 'close_db error'
 
+#####################################################################
 def dongchengjiaoshui_create_table():
     global con
     try:
@@ -65,6 +66,45 @@ def dongchengjiaoshui_select():
     except Exception:
         print 'dongchengjiaoshui_select error'
         connect_db()
+#####################################################################
+
+
+
+#####################################################################
+def dongchengguohu_create_table():
+    global con
+    try:
+        con.execute('drop table if exists dongchengguohu')
+        con.execute('create table dongchengguohu (id integer primary key not null, chushouxingming varchar(100) not null,'
+                    'goumaixingming varchar(100) not null, wangqianhetong varchar(100) not null, qiyuepiaohao varchar(100) not null, guohuzhuanyuan varchar(100) not null,'
+                    'yuyueshijian varchar(100) not null, dateType varchar(100),'
+                    'status varchar(10) not null)')
+    except Exception:
+        print 'dongchengguohu_create_table error'
+        connect_db()
+
+def dongchengguohu_insert(info):
+    global con
+    try:
+        con.execute('insert into dongchengguohu (chushouxingming, goumaixingming, wangqianhetong, qiyuepiaohao,'
+                    'guohuzhuanyuan, yuyueshijian, dateType, status)'
+                    'values (?, ?, ?, ?, ?, ?, ?, ?)', info)
+        con.commit()
+    except Exception:
+        print 'dongchengguohu_insert error'
+        connect_db()
+
+def dongchengguohu_select():
+    cur = con.cursor()
+    cur.execute('select chushouxingming, goumaixingming, wangqianhetong, qiyuepiaohao,'
+                'guohuzhuanyuan, yuyueshijian, dateType, status from dongchengguohu')
+    return cur.fetchall()
+    try:
+        print 'a'
+    except Exception:
+        print 'dongchengguohu_select error'
+        connect_db()
+#####################################################################
 
 if __name__ == '__main__':
     connect_db()
@@ -73,9 +113,6 @@ if __name__ == '__main__':
     for i in a:
         print type(i)
         dongchengjiaoshui_insert(a)
-        #dongchengjiaoshui_insert(['323', 'ss', '456', 'mm', '0'])
-        #dongchengjiaoshui_insert(('223', 'ss', '456', 'mm', '0'))
-        #dongchengjiaoshui_update(('897', 'hh', '234', 'll', '1', 2))
         for item in dongchengjiaoshui_select():
             for i in item:
                 print type(i)
