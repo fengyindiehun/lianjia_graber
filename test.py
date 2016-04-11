@@ -67,9 +67,17 @@ def dongchengjiaoshui_select():
         print 'dongchengjiaoshui_select error'
         connect_db()
 
+def foo():
+    return 1, 2
+
 if __name__ == '__main__':
-    connect_db()
-    dongchengjiaoshui_create_table()
+    a = '1'
+    if a is '1':
+        print 'dengyu 1'
+    else:
+        print 'budeng'
+    #connect_db()
+    #dongchengjiaoshui_create_table()
     #a = ('123', 'ss', '456', 'mm', '0')
     #for i in a:
     #    print type(i)

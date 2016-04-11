@@ -67,5 +67,39 @@ def dodongchengjiaoshui_add():
     db.dongchengjiaoshui_insert((hetonghao, kehuxingming, shenfenzheng, guohuzhuanyuan, yuyueshijian, shijianduan, status))
     return render_template('index.html')
 
+@app.route('/dongchengguohu_add', methods=['GET', 'POST'])
+def dongchengguohu_add():
+    return render_template('dongchengguohu_add.html')
+
+@app.route('/dodongchengguohu_add', methods=['GET', 'POST'])
+def dodongchengguohu_add():
+    hetonghao = None
+    kehuxingming = None
+    shenfenzheng = None
+    guohuzhuanyuan = None
+    status = '0'
+    if request.method == 'POST':
+        print 'dodongchengguohu_add method is Post'
+        shoumaixingming = request.form.get('shoumaixingming').encode('utf-8')
+        goumaixingming = request.form.get('goumaixingming').encode('utf-8')
+        hetonghao = request.form.get('hetonghao').encode('utf-8')
+        qishuipiaohao = request.form.get('qishuipiaohao').encode('utf-8')
+        guohuzhuanyuan = request.form.get('guohuzhuanyuan').encode('utf-8')
+        yuyueshijian = request.form.get('yuyueshijian').encode('utf-8')
+        shijianduan = request.form.get('shijianduan').encode('utf-8')
+    else:
+        print 'dodongchengguohu_add method is Get'
+        shoumaixingming = request.args.get('shoumaixingming').encode('utf-8')
+        goumaixingming = request.args.get('goumaixingming').encode('utf-8')
+        hetonghao = request.args.get('hetonghao').encode('utf-8')
+        qishuipiaohao = request.args.get('qishuipiaohao').encode('utf-8')
+        guohuzhuanyuan = request.args.get('guohuzhuanyuan').encode('utf-8')
+        yuyueshijian = request.args.get('yuyueshijian').encode('utf-8')
+        shijianduan = request.args.get('shijianduan').encode('utf-8')
+
+    db.connect_db()
+    db.dongchengguohu_insert((shoumaixingming, goumaixingming, hetonghao, qishuipiaohao, guohuzhuanyuan, yuyueshijian, shijianduan, status))
+    return render_template('index.html')
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8000, debug=True)
