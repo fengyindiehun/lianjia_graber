@@ -23,6 +23,6 @@ def asynchronous():
         threads.append(gevent.spawn(fetch, i))
     gevent.joinall(threads)
 
-synchronous()
-print 'end'
+#synchronous()
+#print 'end'
 asynchronous()

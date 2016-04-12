@@ -2,8 +2,12 @@
 
 import urllib
 import urllib2
-import sys
+#from gevent import monkey; monkey.patch_socket()
+import gevent
+from gevent import monkey
+monkey.patch_all()
 from bs4 import BeautifulSoup
+import sys
 import db
 
 #####################################################################
@@ -114,7 +118,7 @@ def get_user_pay_account():
     html_content = fd_read.read()
     soup = BeautifulSoup(html_content, 'html.parser')
     for item in soup.find_all(name='input', attrs={'name':'post_account'}):
-        #accounts.append(item.get('value').encode('utf-8'))
+        #only return personal account
         return item.get('value').encode('utf-8')
 
 def dongchengjiaoshui_addtocart(jsessionid):
@@ -231,6 +235,12 @@ def dongchengjiaoshui_submitorder(jsessionid, form_data, order_info):
 #    post_datas = [data for data in post_datas if data not in removed_datas]
 #    #print post_datas
 
+def dongchengjiaoshui_asynchronous(jsessionid, post_info, order_info):
+    threads = []
+    for i in range(1,10):
+        threads.append(gevent.spawn(dongchengjiaoshui_submitorder, jsessionid, post_info, order_info))
+    gevent.joinall(threads)
+
 def dongchengjiaoshui():
     jsessionid = get_jsessionid_from_file()
     print 'jsessionid is:' + jsessionid
@@ -259,10 +269,12 @@ def dongchengjiaoshui():
                      'kehushengfenzheng' : kehushengfenzheng, 'guohuzhuanyuan' : guohuzhuanyuan, 'yuyueshijian' : yuyueshijian,
                      'dateType' : dateType, 'svpdUpLoadType' : svpdUpLoadType, 'spvdName' : spvdName,
                      'svpdUpLoadTypeDetail' : svpdUpLoadTypeDetail, 'spvdCode' : spvdCode, 'svpdDetailCategory': svpdDetailCategory,
-                     'checkBoxProduct' : checkBoxProduct, 'eoContent' : eoContent, 'post_account' : post_account}
+                     'checkBoxProduct' : checkBoxProduct, 'eoContent' : eoContent, 'post_account' : account}
 
         #while True:
-        dongchengjiaoshui_submitorder(jsessionid, post_info, order_info)
+        #dongchengjiaoshui_submitorder(jsessionid, post_info, order_info)
+        dongchengjiaoshui_asynchronous(jsessionid, post_info, order_info)
+
 
 if __name__ == '__main__':
     db.connect_db()
