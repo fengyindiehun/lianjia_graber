@@ -105,12 +105,12 @@ def dongchengguohu_submitorder(jsessionid, form_data, order_info):
     fd_read = opener.open(url, data_encoded)
     html_content = fd_read.read()
     if html_content == '1':
-        print 'http://bjxwgl.homelink.com.cn/order/order_payOrderTSByAccount.action success, contract sd:' + form_data['wangqianhetong'] + ' success, '
+        print 'http://bjxwgl.homelink.com.cn/order/order_payOrderTSByAccount.action success, contract sd:' + form_data['kehushengfenzheng'] + ' success, '
         order_info[6] = '1'
         db.dongchengguohu_update(order_info)
         dongchengguohu_addtocart(jsessionid)
     else:
-        error = 'http://bjxwgl.homelink.com.cn/order/order_payOrderTSByAccount.action failed, contract id:' + form_data['wangqianhetong'] + ' failed, '
+        error = 'http://bjxwgl.homelink.com.cn/order/order_payOrderTSByAccount.action failed, contract id:' + form_data['kehushengfenzheng'] + ' failed, '
         error_msg = ''
         if html_content == '2':
             error_msg = 'only can buy one gift'

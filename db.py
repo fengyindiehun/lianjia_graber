@@ -125,12 +125,13 @@ def dongchengguohu_select():
 
 if __name__ == '__main__':
     connect_db()
-    dongchengjiaoshui_create_table()
-    a = ('123', 'ss', '456', 'mm', '0')
-    for i in a:
-        print type(i)
-        dongchengjiaoshui_insert(a)
-        for item in dongchengjiaoshui_select():
-            for i in item:
-                print type(i)
-                close_db()
+    dongchengguohu_create_table()
+    #dongchengjiaoshui_create_table()
+    #a = ('123', 'ss', '456', 'mm', '0')
+    #for i in a:
+    #    print type(i)
+    #    dongchengjiaoshui_insert(a)
+    #    for item in dongchengjiaoshui_select():
+    #        for i in item:
+    #            print type(i)
+    #            close_db()

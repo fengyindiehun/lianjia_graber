@@ -2,7 +2,6 @@ from flask import Flask
 from flask import render_template
 from flask import request
 import util
-import main
 import db
 
 app = Flask(__name__)
@@ -13,12 +12,12 @@ def init():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    util.get_jsessionid()
+    util.get_captcha()
     return render_template('login.html')
 
 @app.route('/dologin', methods=['GET', 'POST'])
 def dologin():
-    util.get_jsessionid()
-    util.get_captcha()
     username = None
     password = None
     captcha = None
@@ -74,10 +73,6 @@ def dongchengguohu_add():
 
 @app.route('/dodongchengguohu_add', methods=['GET', 'POST'])
 def dodongchengguohu_add():
-    hetonghao = None
-    kehuxingming = None
-    shenfenzheng = None
-    guohuzhuanyuan = None
     status = '0'
     if request.method == 'POST':
         print 'dodongchengguohu_add method is Post'
