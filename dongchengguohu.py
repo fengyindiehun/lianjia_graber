@@ -88,6 +88,7 @@ def dongchengguohu_addtocart(jsessionid):
     sizeId = '2826'
     form_data = {'svpdId' : svpdId, 'buyNum' : buyNum, 'colorId' : colorId, 'sizeId' : sizeId}
     data_encoded = urllib.urlencode(form_data)
+    print data_encoded
     fd_read = opener.open(url, data_encoded)
     html_content = fd_read.read()
     if html_content == '1':
