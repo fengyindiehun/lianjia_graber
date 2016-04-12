@@ -4,6 +4,7 @@ import urllib
 import urllib2
 import sys
 from bs4 import BeautifulSoup
+import db
 
 #####################################################################
 #GLOBAL VAR FOR USER
@@ -52,7 +53,7 @@ def get_captcha():
     fd_write.write(captcha_content)
     fd_write.close()
 
-def login(username, password, captcha):
+def user_login(username, password, captcha):
     jsessionid = get_jsessionid_from_file()
     url = 'http://bjxwgl.homelink.com.cn/usr/login.action'
     opener = urllib2.build_opener()
@@ -61,7 +62,7 @@ def login(username, password, captcha):
     data_encoded = urllib.urlencode(form_data)
     fd_read = opener.open(url, data_encoded)
 
-def dongchengjiaoshui_addtocart(jsessionid):
+def dongchengguohu_addtocart(jsessionid):
     url = 'http://bjxwgl.homelink.com.cn/product/product_addTSProductToCart.action'
     opener = urllib2.build_opener()
     opener.addheaders.append(('Cookie', 'JSESSIONID=' + jsessionid))
@@ -78,31 +79,31 @@ def dongchengjiaoshui_addtocart(jsessionid):
     else:
         print 'http://bjxwgl.homelink.com.cn/product/product_addTSProductToCart.action failed, error_code is:' + html_content
 
-def dongchengjiaoshui_getuserinfo(jsessionid):
+def dongchengguohu_getuserinfo(jsessionid):
     url = 'http://bjxwgl.homelink.com.cn/product/product_toOrderTSApply.action'
     opener = urllib2.build_opener()
     opener.addheaders.append(('Cookie', 'JSESSIONID=' + jsessionid))
-    svpdId = '2925'
+    svpdId = '2969'
     buyNum = '1'
-    colorId = '2188'
-    sizeId = '2566'
+    colorId = '2257'
+    sizeId = '2826'
     form_data = {'svpdId' : svpdId, 'buyNum' : buyNum, 'colorId' : colorId, 'sizeId' : sizeId}
     data_encoded = urllib.urlencode(form_data)
     fd_read = opener.open(url)
     html_content = fd_read.read()
-    if html_content is None or html_content is '':
+    if html_content is None or html_content == '':
         print 'http://bjxwgl.homelink.com.cn/product/product_toOrderTSApply.action failed'
     else:
         print 'http://bjxwgl.homelink.com.cn/product/product_toOrderTSApply.action success'
     return html_content
 
 
-def dongchengjiaoshui_submitorder(jsessionid, form_data):
+def dongchengguohu_submitorder(jsessionid, form_data):
     url = 'http://bjxwgl.homelink.com.cn/order/order_payOrderTSByAccount.action'
     opener = urllib2.build_opener()
     opener.addheaders.append(('Cookie', 'JSESSIONID=' + jsessionid))
     data_encoded = urllib.urlencode(form_data)
-    print 'dongchengjiaoshui form_data:' + data_encoded
+    print 'dongchengguohu form_data:' + data_encoded
     fd_read = opener.open(url, data_encoded)
     html_content = fd_read.read()
     if html_content is '1':
@@ -110,28 +111,28 @@ def dongchengjiaoshui_submitorder(jsessionid, form_data):
     else:
         error = 'http://bjxwgl.homelink.com.cn/order/order_payOrderTSByAccount.action failed, contract id:' + form_data['wangqianhetong'] + ' failed, '
         error_msg = ''
-        if html_content is '2':
+        if html_content == '2':
             error_msg = 'only can buy one gift'
-        elif html_content is '3':
+        elif html_content == '3':
             error_msg = 'please select account'
-        elif html_content is '4':
+        elif html_content == '4':
             error_msg = 'account ' + form_data['post_account'] + ' do not have enough money'
-        elif html_content is '5':
+        elif html_content == '5':
             error_msg = 'please at least choose one gift'
-        elif html_content is '6':
+        elif html_content == '6':
             error_msg = 'region gift can not buy by personal account'
-        elif html_content is '7':
+        elif html_content == '7':
             error_msg = 'personal gift can not buy by public account'
-        elif html_content is '8':
+        elif html_content == '8':
             error_msg = 'exclusive account can only by exclusive gift'
-        elif html_content is '9':
+        elif html_content == '9':
             error_msg = 'market account can only by market gift'
-        elif html_content is '10':
+        elif html_content == '10':
             error_msg = 'recrutiment account can only by recrutiment gift'
-        elif html_content is '11':
+        elif html_content == '11':
             error_msg = 'do not have enough gift, please choose other time'
         else:
-            error_msg = 'unknown error'
+            error_msg = html_content
         print error + error_msg
     return html_content
 
@@ -141,13 +142,14 @@ def get_user_pay_account_list():
     opener = urllib2.build_opener()
     opener.addheaders.append(('Cookie', 'JSESSIONID=' + jsessionid))
     #form_data = post_info_map
-    spvdCode = 'ZN0870,'
+    spvdCode = 'ZN0871,'
     svpdDetailCategory = '101336,'
     form_data = {'spvdCode':spvdCode, 'svpdDetailCategory':svpdDetailCategory}
     data_encoded = urllib.urlencode(form_data)
     fd_read = opener.open(url, data_encoded)
     html_content = fd_read.read()
-    soup = BeautifulSoup(html_content, 'html.parser')
+    #soup = BeautifulSoup(html_content, 'html.parser')
+    soup = BeautifulSoup(html_content)
     accounts = []
     for item in soup.find_all(name='input', attrs={'name':'post_account'}):
         accounts.append(item.get('value').encode('utf-8'))
@@ -173,26 +175,27 @@ def parse_cart_info(cart_info):
     print 'tsphone:' + tsphone
     print accounts
 
-def get_dongchengjiaoshui_post_datas():
+def get_dongchengguohu_post_datas():
     post_map = []
     svpdUpLoadType = '-1'
-    spvdName = '东城预约缴税'
+    spvdName = '东城预约过户'
     svpdUpLoadTypeDetail = '-1'
-    spvdCode = 'ZN0870'
+    spvdCode = 'ZN0871'
     svpdDetailCategory = '101336'
-    checkBoxProduct = '2925_2188_2566'
+    checkBoxProduct = '2969_2257_2826'
 
-    for line in open('dongchengjiaoshui.txt', 'r'):
-        order_info = line.strip('\n').split()
-        if order_info[0] is not '1':
+    #for line in open('dongchengguohu.txt', 'r'):
+    for order_info in db.dongchengguohu_select():
+        if order_info[7] != '0':
             continue
-        wangqianhetong = order_info[1]
-        kehuxingming = order_info[2]
-        kehushengfenzheng = order_info[3]
-        guohuzhuanyuan = order_info[4]
+        wangqianhetong = order_info[0]
+        kehuxingming = order_info[1]
+        kehushengfenzheng = order_info[2]
+        guohuzhuanyuan = order_info[3]
+        guohuzhuanyuan_zuihou = order_info[4]
         yuyueshijian = order_info[5]
         dateType = order_info[6]
-        eoContent = '网签合同号：' + wangqianhetong + ',客户姓名：' + kehuxingming + ',身份证号：' + kehushengfenzheng + ',过户专员：' + guohuzhuanyuan + ',预约时间：' + yuyueshijian + ',' + dateType
+        eoContent = '卖方姓名：' + wangqianhetong + ',买方姓名：' + kehuxingming + ',网签合同号：' + kehushengfenzheng + ',契税票号：' + guohuzhuanyuan + ',过户专员：' + guohuzhuanyuan_zuihou + ',预约时间：' + yuyueshijian + ',' + dateType
         #post_info_map = {'tsname' : tsname, 'tsuserid' : tsuserid, 'marketemail' : marketemail,
         #                 'tsphone' : tsphone, 'wangqianhetong' : wangqianhetong, 'kehuxingming' : kehuxingming,
         #                 'kehushengfenzheng' : kehushengfenzheng, 'guohuzhuanyuan' : guohuzhuanyuan, 'yuyueshijian' : yuyueshijian,
@@ -201,7 +204,7 @@ def get_dongchengjiaoshui_post_datas():
         #                 'checkBoxProduct' : checkBoxProduct, 'eoContent' : eoContent,  'post_account' : post_account}
         post_info_map = {'tsname' : tsname, 'tsuserid' : tsuserid, 'marketemail' : marketemail,
                          'tsphone' : tsphone, 'wangqianhetong' : wangqianhetong, 'kehuxingming' : kehuxingming,
-                         'kehushengfenzheng' : kehushengfenzheng, 'guohuzhuanyuan' : guohuzhuanyuan, 'yuyueshijian' : yuyueshijian,
+                         'kehushengfenzheng' : kehushengfenzheng, 'guohuzhuanyuan' : guohuzhuanyuan, 'guohuzhuanyuan_zuihou' : guohuzhuanyuan_zuihou, 'yuyueshijian' : yuyueshijian,
                          'dateType' : dateType, 'svpdUpLoadType' : svpdUpLoadType, 'spvdName' : spvdName,
                          'svpdUpLoadTypeDetail' : svpdUpLoadTypeDetail, 'spvdCode' : spvdCode, 'svpdDetailCategory': svpdDetailCategory,
                          'checkBoxProduct' : checkBoxProduct, 'eoContent' : eoContent}
@@ -210,13 +213,13 @@ def get_dongchengjiaoshui_post_datas():
     #print post_map
     return post_map
 
-def dongchengjiaoshui():
+def dongchengguohu():
     jsessionid = get_jsessionid_from_file()
     print 'jsessionid is:' + jsessionid
-    dongchengjiaoshui_addtocart(jsessionid)
-    cart_info = dongchengjiaoshui_getuserinfo(jsessionid)
+    dongchengguohu_addtocart(jsessionid)
+    cart_info = dongchengguohu_getuserinfo(jsessionid)
     parse_cart_info(cart_info)
-    post_datas = get_dongchengjiaoshui_post_datas()
+    post_datas = get_dongchengguohu_post_datas()
     #while True:
     removed_datas = []
     for post_data in post_datas:
@@ -225,12 +228,14 @@ def dongchengjiaoshui():
             #print post_data['wangqianhetong']
             #if post_data['wangqianhetong'] == '32133':
             #    removed_datas.append(post_data)
-            if dongchengjiaoshui_submitorder(jsessionid, post_data) == '1':
+            if dongchengguohu_submitorder(jsessionid, post_data) == '1':
                 removed_datas.append(post_data)
+                dongchengguohu_addtocart(jsessionid)
                 break
     #print removed_datas
     post_datas = [data for data in post_datas if data not in removed_datas]
     #print post_datas
 
 if __name__ == '__main__':
-    dongchengjiaoshui()
+    db.connect_db()
+    dongchengguohu()

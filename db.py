@@ -41,6 +41,7 @@ def dongchengjiaoshui_insert(info):
     except Exception:
         print 'dongchengjiaoshui_insert error'
         connect_db()
+
 def dongchengjiaoshui_update(info):
     try:
         con.execute('update dongchengjiaoshui set '
@@ -59,7 +60,7 @@ def dongchengjiaoshui_update(info):
 def dongchengjiaoshui_select():
     cur = con.cursor()
     cur.execute('select hetonghao, kehuxingming, kehushenfenzheng,'
-                'guohuzhuanyuan, yuyueshijian, dateType, status from dongchengjiaoshui')
+                'guohuzhuanyuan, yuyueshijian, dateType, status, id from dongchengjiaoshui')
     return cur.fetchall()
     try:
         print 'a'
@@ -94,10 +95,26 @@ def dongchengguohu_insert(info):
         print 'dongchengguohu_insert error'
         connect_db()
 
+def dongchengguohu_update(info):
+    try:
+        con.execute('update dongchengguohu set '
+                    'chushouxingming = ?,'
+                    'goumaixingming = ?,'
+                    'wangqianhetong = ?,'
+                    'qiyuepiaohao = ?,'
+                    'guohuzhuanyuan = ?,'
+                    'yuyueshijian = ?,'
+                    'dateType = ?,'
+                    'status = ? where id = ?', info)
+        con.commit()
+    except Exception:
+        print 'dongchengjiaoshui_update error'
+        connect_db()
+
 def dongchengguohu_select():
     cur = con.cursor()
     cur.execute('select chushouxingming, goumaixingming, wangqianhetong, qiyuepiaohao,'
-                'guohuzhuanyuan, yuyueshijian, dateType, status from dongchengguohu')
+                'guohuzhuanyuan, yuyueshijian, dateType, status, id from dongchengguohu')
     return cur.fetchall()
     try:
         print 'a'

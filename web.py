@@ -1,6 +1,7 @@
 from flask import Flask
 from flask import render_template
 from flask import request
+import util
 import main
 import db
 
@@ -16,8 +17,8 @@ def login():
 
 @app.route('/dologin', methods=['GET', 'POST'])
 def dologin():
-    main.get_jsessionid()
-    main.get_captcha()
+    util.get_jsessionid()
+    util.get_captcha()
     username = None
     password = None
     captcha = None
@@ -32,7 +33,7 @@ def dologin():
         password = request.args.get('password').encode('utf-8')
         captcha = request.args.get('captcha').encode('utf-8')
 
-    main.user_login(username, password, captcha)
+    util.user_login(username, password, captcha)
     return render_template('index.html')
 
 @app.route('/dongchengjiaoshui_add', methods=['GET', 'POST'])

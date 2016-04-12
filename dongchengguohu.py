@@ -2,9 +2,14 @@
 
 import urllib
 import urllib2
-import sys
+import gevent
+from gevent import monkey
+monkey.patch_all()
 from bs4 import BeautifulSoup
+import sys
 import db
+import util
+
 
 #####################################################################
 #GLOBAL VAR FOR USER
@@ -13,72 +18,11 @@ tsname = None
 tsuserid = None
 marketemail = None
 tsphone = None
-accounts = []
+account = None
 #####################################################################
 
 
-
-
 #####################################################################
-def get_jsessionid_from_file():
-    fd = open('jsessionid.txt', 'r')
-    jsessionid = fd.readline()
-    fd.close()
-    return jsessionid
-
-def write_jsessionid_to_file(jsessionid):
-    fd = open('jsessionid.txt', 'w')
-    fd.write(jsessionid)
-    fd.close()
-
-def get_jsessionid():
-    url = 'http://bjxwgl.homelink.com.cn/'
-    header = urllib.urlopen(url).info()
-    cookie = header['Set-Cookie']
-    print 'The value of Set-Cookie is:' + cookie
-    semicolon_pos = cookie.find(';')
-    equal_pos = cookie.find('=')
-    jsessionid = cookie[equal_pos+1 : semicolon_pos]
-    print 'The value of jsessionid is:' + jsessionid
-    write_jsessionid_to_file(jsessionid)
-
-def get_captcha():
-    jsessionid = get_jsessionid_from_file()
-    url = 'http://bjxwgl.homelink.com.cn/usr/loginCaptcha.action'
-    opener = urllib2.build_opener()
-    opener.addheaders.append(('Cookie', 'JSESSIONID=' + jsessionid))
-    fd_read = opener.open(url)
-    captcha_content = fd_read.read()
-    fd_write = open('./static/captcha.jpg', 'w')
-    fd_write.write(captcha_content)
-    fd_write.close()
-
-def user_login(username, password, captcha):
-    jsessionid = get_jsessionid_from_file()
-    url = 'http://bjxwgl.homelink.com.cn/usr/login.action'
-    opener = urllib2.build_opener()
-    opener.addheaders.append(('Cookie', 'JSESSIONID=' + jsessionid))
-    form_data = {'userCode' : username, 'password' : password, 'captcha' : captcha, 'urlcode' : '/'}
-    data_encoded = urllib.urlencode(form_data)
-    fd_read = opener.open(url, data_encoded)
-
-def dongchengguohu_addtocart(jsessionid):
-    url = 'http://bjxwgl.homelink.com.cn/product/product_addTSProductToCart.action'
-    opener = urllib2.build_opener()
-    opener.addheaders.append(('Cookie', 'JSESSIONID=' + jsessionid))
-    svpdId = '2969'
-    buyNum = '1'
-    colorId = '2257'
-    sizeId = '2826'
-    form_data = {'svpdId' : svpdId, 'buyNum' : buyNum, 'colorId' : colorId, 'sizeId' : sizeId}
-    data_encoded = urllib.urlencode(form_data)
-    fd_read = opener.open(url, data_encoded)
-    html_content = fd_read.read()
-    if html_content is '1':
-        print 'http://bjxwgl.homelink.com.cn/product/product_addTSProductToCart.action success'
-    else:
-        print 'http://bjxwgl.homelink.com.cn/product/product_addTSProductToCart.action failed, error_code is:' + html_content
-
 def dongchengguohu_getuserinfo(jsessionid):
     url = 'http://bjxwgl.homelink.com.cn/product/product_toOrderTSApply.action'
     opener = urllib2.build_opener()
@@ -97,8 +41,61 @@ def dongchengguohu_getuserinfo(jsessionid):
         print 'http://bjxwgl.homelink.com.cn/product/product_toOrderTSApply.action success'
     return html_content
 
+def dongchengguohu_get_user_pay_account():
+    jsessionid = util.get_jsessionid_from_file()
+    url = 'http://bjxwgl.homelink.com.cn/order/order_getUserPayAccountList.action'
+    opener = urllib2.build_opener()
+    opener.addheaders.append(('Cookie', 'JSESSIONID=' + jsessionid))
+    #form_data = post_info_map
+    spvdCode = 'ZN0871,'
+    svpdDetailCategory = '101336,'
+    form_data = {'spvdCode':spvdCode, 'svpdDetailCategory':svpdDetailCategory}
+    data_encoded = urllib.urlencode(form_data)
+    fd_read = opener.open(url, data_encoded)
+    html_content = fd_read.read()
+    soup = BeautifulSoup(html_content, 'html.parser')
+    for item in soup.find_all(name='input', attrs={'name':'post_account'}):
+        #only return personal account
+        return item.get('value').encode('utf-8')
 
-def dongchengguohu_submitorder(jsessionid, form_data):
+def dongchengguohu_parse_user_info(user_info_html):
+    global tsname
+    global tsuserid
+    global marketemail
+    global tsphone
+    global account
+
+    soup = BeautifulSoup(user_info_html, 'html.parser', from_encoding='latin-1')
+    tsname = soup.find(id='post_user_input').get('value').encode('utf-8')
+    tsuserid = soup.find(id='post_uid_input').get('value').encode('utf-8')
+    marketemail = soup.find(name='input', attrs={'name':'marketemail'}).get('value').encode('utf-8')
+    tsphone = soup.find(id='post_phone_input').get('value').encode('utf-8')
+    account = dongchengguohu_get_user_pay_account()
+
+    print 'tsname:' + tsname
+    print 'tsuserid:' + tsuserid
+    print 'marketemail:'+ marketemail
+    print 'tsphone:' + tsphone
+    print 'account' + account
+
+def dongchengguohu_addtocart(jsessionid):
+    url = 'http://bjxwgl.homelink.com.cn/product/product_addTSProductToCart.action'
+    opener = urllib2.build_opener()
+    opener.addheaders.append(('Cookie', 'JSESSIONID=' + jsessionid))
+    svpdId = '2969'
+    buyNum = '1'
+    colorId = '2257'
+    sizeId = '2826'
+    form_data = {'svpdId' : svpdId, 'buyNum' : buyNum, 'colorId' : colorId, 'sizeId' : sizeId}
+    data_encoded = urllib.urlencode(form_data)
+    fd_read = opener.open(url, data_encoded)
+    html_content = fd_read.read()
+    if html_content == '1':
+        print 'http://bjxwgl.homelink.com.cn/product/product_addTSProductToCart.action success'
+    else:
+        print 'http://bjxwgl.homelink.com.cn/product/product_addTSProductToCart.action failed, error_code is:' + html_content
+
+def dongchengguohu_submitorder(jsessionid, form_data, order_info):
     url = 'http://bjxwgl.homelink.com.cn/order/order_payOrderTSByAccount.action'
     opener = urllib2.build_opener()
     opener.addheaders.append(('Cookie', 'JSESSIONID=' + jsessionid))
@@ -106,8 +103,11 @@ def dongchengguohu_submitorder(jsessionid, form_data):
     print 'dongchengguohu form_data:' + data_encoded
     fd_read = opener.open(url, data_encoded)
     html_content = fd_read.read()
-    if html_content is '1':
+    if html_content == '1':
         print 'http://bjxwgl.homelink.com.cn/order/order_payOrderTSByAccount.action success, contract sd:' + form_data['wangqianhetong'] + ' success, '
+        order_info[6] = '1'
+        db.dongchengguohu_update(order_info)
+        dongchengguohu_addtocart(jsessionid)
     else:
         error = 'http://bjxwgl.homelink.com.cn/order/order_payOrderTSByAccount.action failed, contract id:' + form_data['wangqianhetong'] + ' failed, '
         error_msg = ''
@@ -134,57 +134,20 @@ def dongchengguohu_submitorder(jsessionid, form_data):
         else:
             error_msg = html_content
         print error + error_msg
-    return html_content
 
-def get_user_pay_account_list():
-    jsessionid = get_jsessionid_from_file()
-    url = 'http://bjxwgl.homelink.com.cn/order/order_getUserPayAccountList.action'
-    opener = urllib2.build_opener()
-    opener.addheaders.append(('Cookie', 'JSESSIONID=' + jsessionid))
-    #form_data = post_info_map
-    spvdCode = 'ZN0871,'
-    svpdDetailCategory = '101336,'
-    form_data = {'spvdCode':spvdCode, 'svpdDetailCategory':svpdDetailCategory}
-    data_encoded = urllib.urlencode(form_data)
-    fd_read = opener.open(url, data_encoded)
-    html_content = fd_read.read()
-    #soup = BeautifulSoup(html_content, 'html.parser')
-    soup = BeautifulSoup(html_content)
-    accounts = []
-    for item in soup.find_all(name='input', attrs={'name':'post_account'}):
-        accounts.append(item.get('value').encode('utf-8'))
-    return accounts
+def dongchengguohu_async(jsessionid, post_info, order_info):
+    threads = []
+    for i in range(1,10):
+        threads.append(gevent.spawn(dongchengguohu_submitorder, jsessionid, post_info, order_info))
+    gevent.joinall(threads)
 
-def parse_cart_info(cart_info):
-    global tsname
-    global tsuserid
-    global marketemail
-    global tsphone
-    global accounts
+def dongchengguohu():
+    jsessionid = util.get_jsessionid_from_file()
+    print 'jsessionid is:' + jsessionid
+    dongchengguohu_addtocart(jsessionid)
+    user_info_html = dongchengguohu_getuserinfo(jsessionid)
+    dongchengguohu_parse_user_info(user_info_html)
 
-    soup = BeautifulSoup(cart_info, 'html.parser', from_encoding='latin-1')
-    tsname = soup.find(id='post_user_input').get('value').encode('utf-8')
-    tsuserid = soup.find(id='post_uid_input').get('value').encode('utf-8')
-    marketemail = soup.find(name='input', attrs={'name':'marketemail'}).get('value').encode('utf-8')
-    tsphone = soup.find(id='post_phone_input').get('value').encode('utf-8')
-    accounts = get_user_pay_account_list()
-
-    print 'tsname:' + tsname
-    print 'tsuserid:' + tsuserid
-    print 'marketemail:'+ marketemail
-    print 'tsphone:' + tsphone
-    print accounts
-
-def get_dongchengguohu_post_datas():
-    post_map = []
-    svpdUpLoadType = '-1'
-    spvdName = '东城预约过户'
-    svpdUpLoadTypeDetail = '-1'
-    spvdCode = 'ZN0871'
-    svpdDetailCategory = '101336'
-    checkBoxProduct = '2969_2257_2826'
-
-    #for line in open('dongchengguohu.txt', 'r'):
     for order_info in db.dongchengguohu_select():
         if order_info[7] != '0':
             continue
@@ -195,46 +158,21 @@ def get_dongchengguohu_post_datas():
         guohuzhuanyuan_zuihou = order_info[4]
         yuyueshijian = order_info[5]
         dateType = order_info[6]
+        svpdUpLoadType = '-1'
+        spvdName = '东城预约过户'
+        svpdUpLoadTypeDetail = '-1'
+        spvdCode = 'ZN0871'
+        svpdDetailCategory = '101336'
+        checkBoxProduct = '2969_2257_2826'
         eoContent = '卖方姓名：' + wangqianhetong + ',买方姓名：' + kehuxingming + ',网签合同号：' + kehushengfenzheng + ',契税票号：' + guohuzhuanyuan + ',过户专员：' + guohuzhuanyuan_zuihou + ',预约时间：' + yuyueshijian + ',' + dateType
-        #post_info_map = {'tsname' : tsname, 'tsuserid' : tsuserid, 'marketemail' : marketemail,
-        #                 'tsphone' : tsphone, 'wangqianhetong' : wangqianhetong, 'kehuxingming' : kehuxingming,
-        #                 'kehushengfenzheng' : kehushengfenzheng, 'guohuzhuanyuan' : guohuzhuanyuan, 'yuyueshijian' : yuyueshijian,
-        #                 'dateType' : dateType, 'svpdUpLoadType' : svpdUpLoadType, 'spvdName' : spvdName,
-        #                 'svpdUpLoadTypeDetail' : svpdUpLoadTypeDetail, 'spvdCode' : spvdCode, 'svpdDetailCategory': svpdDetailCategory,
-        #                 'checkBoxProduct' : checkBoxProduct, 'eoContent' : eoContent,  'post_account' : post_account}
-        post_info_map = {'tsname' : tsname, 'tsuserid' : tsuserid, 'marketemail' : marketemail,
-                         'tsphone' : tsphone, 'wangqianhetong' : wangqianhetong, 'kehuxingming' : kehuxingming,
-                         'kehushengfenzheng' : kehushengfenzheng, 'guohuzhuanyuan' : guohuzhuanyuan, 'guohuzhuanyuan_zuihou' : guohuzhuanyuan_zuihou, 'yuyueshijian' : yuyueshijian,
-                         'dateType' : dateType, 'svpdUpLoadType' : svpdUpLoadType, 'spvdName' : spvdName,
-                         'svpdUpLoadTypeDetail' : svpdUpLoadTypeDetail, 'spvdCode' : spvdCode, 'svpdDetailCategory': svpdDetailCategory,
-                         'checkBoxProduct' : checkBoxProduct, 'eoContent' : eoContent}
-        post_map.append(post_info_map)
-        #print post_info_map
-    #print post_map
-    return post_map
+        post_info = {'tsname' : tsname, 'tsuserid' : tsuserid, 'marketemail' : marketemail,
+                     'tsphone' : tsphone, 'wangqianhetong' : wangqianhetong, 'kehuxingming' : kehuxingming,
+                     'kehushengfenzheng' : kehushengfenzheng, 'guohuzhuanyuan' : guohuzhuanyuan, 'yuyueshijian' : yuyueshijian,
+                     'dateType' : dateType, 'svpdUpLoadType' : svpdUpLoadType, 'spvdName' : spvdName,
+                     'svpdUpLoadTypeDetail' : svpdUpLoadTypeDetail, 'spvdCode' : spvdCode, 'svpdDetailCategory': svpdDetailCategory,
+                     'checkBoxProduct' : checkBoxProduct, 'eoContent' : eoContent, 'post_account' : account}
+        dongchengguohu_async(jsessionid, post_info, order_info)
 
-def dongchengguohu():
-    jsessionid = get_jsessionid_from_file()
-    print 'jsessionid is:' + jsessionid
-    dongchengguohu_addtocart(jsessionid)
-    cart_info = dongchengguohu_getuserinfo(jsessionid)
-    parse_cart_info(cart_info)
-    post_datas = get_dongchengguohu_post_datas()
-    #while True:
-    removed_datas = []
-    for post_data in post_datas:
-        for account in accounts:
-            post_data['post_account'] = account
-            #print post_data['wangqianhetong']
-            #if post_data['wangqianhetong'] == '32133':
-            #    removed_datas.append(post_data)
-            if dongchengguohu_submitorder(jsessionid, post_data) == '1':
-                removed_datas.append(post_data)
-                dongchengguohu_addtocart(jsessionid)
-                break
-    #print removed_datas
-    post_datas = [data for data in post_datas if data not in removed_datas]
-    #print post_datas
 
 if __name__ == '__main__':
     db.connect_db()

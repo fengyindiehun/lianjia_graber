@@ -2,13 +2,14 @@
 
 import urllib
 import urllib2
-#from gevent import monkey; monkey.patch_socket()
 import gevent
 from gevent import monkey
 monkey.patch_all()
 from bs4 import BeautifulSoup
 import sys
 import db
+import util
+
 
 #####################################################################
 #GLOBAL VAR FOR USER
@@ -21,52 +22,8 @@ account = None
 #####################################################################
 
 
-
-
 #####################################################################
-def get_jsessionid_from_file():
-    fd = open('jsessionid.txt', 'r')
-    jsessionid = fd.readline()
-    fd.close()
-    return jsessionid
-
-def write_jsessionid_to_file(jsessionid):
-    fd = open('jsessionid.txt', 'w')
-    fd.write(jsessionid)
-    fd.close()
-
-def get_jsessionid():
-    url = 'http://bjxwgl.homelink.com.cn/'
-    header = urllib.urlopen(url).info()
-    cookie = header['Set-Cookie']
-    print 'The value of Set-Cookie is:' + cookie
-    semicolon_pos = cookie.find(';')
-    equal_pos = cookie.find('=')
-    jsessionid = cookie[equal_pos+1 : semicolon_pos]
-    print 'The value of jsessionid is:' + jsessionid
-    write_jsessionid_to_file(jsessionid)
-
-def get_captcha():
-    jsessionid = get_jsessionid_from_file()
-    url = 'http://bjxwgl.homelink.com.cn/usr/loginCaptcha.action'
-    opener = urllib2.build_opener()
-    opener.addheaders.append(('Cookie', 'JSESSIONID=' + jsessionid))
-    fd_read = opener.open(url)
-    captcha_content = fd_read.read()
-    fd_write = open('./static/captcha.jpg', 'w')
-    fd_write.write(captcha_content)
-    fd_write.close()
-
-def user_login(username, password, captcha):
-    jsessionid = get_jsessionid_from_file()
-    url = 'http://bjxwgl.homelink.com.cn/usr/login.action'
-    opener = urllib2.build_opener()
-    opener.addheaders.append(('Cookie', 'JSESSIONID=' + jsessionid))
-    form_data = {'userCode' : username, 'password' : password, 'captcha' : captcha, 'urlcode' : '/'}
-    data_encoded = urllib.urlencode(form_data)
-    fd_read = opener.open(url, data_encoded)
-
-def getuserinfo(jsessionid):
+def dongchengjiaoshui_getuserinfo(jsessionid):
     url = 'http://bjxwgl.homelink.com.cn/product/product_toOrderTSApply.action'
     opener = urllib2.build_opener()
     opener.addheaders.append(('Cookie', 'JSESSIONID=' + jsessionid))
@@ -84,28 +41,8 @@ def getuserinfo(jsessionid):
         print 'http://bjxwgl.homelink.com.cn/product/product_toOrderTSApply.action success'
     return html_content
 
-def parse_user_info(user_info_html):
-    global tsname
-    global tsuserid
-    global marketemail
-    global tsphone
-    global account
-
-    soup = BeautifulSoup(user_info_html, 'html.parser', from_encoding='latin-1')
-    tsname = soup.find(id='post_user_input').get('value').encode('utf-8')
-    tsuserid = soup.find(id='post_uid_input').get('value').encode('utf-8')
-    marketemail = soup.find(name='input', attrs={'name':'marketemail'}).get('value').encode('utf-8')
-    tsphone = soup.find(id='post_phone_input').get('value').encode('utf-8')
-    account = get_user_pay_account()
-
-    print 'tsname:' + tsname
-    print 'tsuserid:' + tsuserid
-    print 'marketemail:'+ marketemail
-    print 'tsphone:' + tsphone
-    print 'account' + account
-
-def get_user_pay_account():
-    jsessionid = get_jsessionid_from_file()
+def dongchengjiaoshui_get_user_pay_account():
+    jsessionid = util.get_jsessionid_from_file()
     url = 'http://bjxwgl.homelink.com.cn/order/order_getUserPayAccountList.action'
     opener = urllib2.build_opener()
     opener.addheaders.append(('Cookie', 'JSESSIONID=' + jsessionid))
@@ -120,6 +57,26 @@ def get_user_pay_account():
     for item in soup.find_all(name='input', attrs={'name':'post_account'}):
         #only return personal account
         return item.get('value').encode('utf-8')
+
+def dongchengjiaoshui_parse_user_info(user_info_html):
+    global tsname
+    global tsuserid
+    global marketemail
+    global tsphone
+    global account
+
+    soup = BeautifulSoup(user_info_html, 'html.parser', from_encoding='latin-1')
+    tsname = soup.find(id='post_user_input').get('value').encode('utf-8')
+    tsuserid = soup.find(id='post_uid_input').get('value').encode('utf-8')
+    marketemail = soup.find(name='input', attrs={'name':'marketemail'}).get('value').encode('utf-8')
+    tsphone = soup.find(id='post_phone_input').get('value').encode('utf-8')
+    account = dongchengjiaoshui_get_user_pay_account()
+
+    print 'tsname:' + tsname
+    print 'tsuserid:' + tsuserid
+    print 'marketemail:'+ marketemail
+    print 'tsphone:' + tsphone
+    print 'account' + account
 
 def dongchengjiaoshui_addtocart(jsessionid):
     url = 'http://bjxwgl.homelink.com.cn/product/product_addTSProductToCart.action'
@@ -178,75 +135,18 @@ def dongchengjiaoshui_submitorder(jsessionid, form_data, order_info):
             error_msg = html_content
         print error + error_msg
 
-#def get_dongchengjiaoshui_post_datas():
-#    post_map = []
-#    order_info_map = []
-#    svpdUpLoadType = '-1'
-#    spvdName = '东城预约缴税'
-#    svpdUpLoadTypeDetail = '-1'
-#    spvdCode = 'ZN0870'
-#    svpdDetailCategory = '101336'
-#    checkBoxProduct = '2925_2188_2566'
-#
-#    #for line in open('dongchengjiaoshui.txt', 'r'):
-#    for order_info in db.dongchengjiaoshui_select():
-#        if order_info[6] != '0':
-#            continue
-#        wangqianhetong = order_info[0]
-#        kehuxingming = order_info[1]
-#        kehushengfenzheng = order_info[2]
-#        guohuzhuanyuan = order_info[3]
-#        yuyueshijian = order_info[4]
-#        dateType = order_info[5]
-#        id = order_info[7]  #primary key
-#        eoContent = '网签合同号：' + wangqianhetong + ',客户姓名：' + kehuxingming + ',身份证号：' + kehushengfenzheng + ',过户专员：' + guohuzhuanyuan + ',预约时间：' + yuyueshijian + ',' + dateType
-#        post_info_map = {'tsname' : tsname, 'tsuserid' : tsuserid, 'marketemail' : marketemail,
-#                         'tsphone' : tsphone, 'wangqianhetong' : wangqianhetong, 'kehuxingming' : kehuxingming,
-#                         'kehushengfenzheng' : kehushengfenzheng, 'guohuzhuanyuan' : guohuzhuanyuan, 'yuyueshijian' : yuyueshijian,
-#                         'dateType' : dateType, 'svpdUpLoadType' : svpdUpLoadType, 'spvdName' : spvdName,
-#                         'svpdUpLoadTypeDetail' : svpdUpLoadTypeDetail, 'spvdCode' : spvdCode, 'svpdDetailCategory': svpdDetailCategory,
-#                         'checkBoxProduct' : checkBoxProduct, 'eoContent' : eoContent, 'post_account' : post_account}
-#        post_map.append(post_info_map)
-#        order_info_map.append(order_info)
-#        #print post_info_map
-#    #print post_map
-#    return post_map, order_info_map
-
-#def dongchengjiaoshui():
-#    jsessionid = get_jsessionid_from_file()
-#    print 'jsessionid is:' + jsessionid
-#    dongchengjiaoshui_addtocart(jsessionid)
-#    cart_info = dongchengjiaoshui_getuserinfo(jsessionid)
-#    parse_cart_info(cart_info)
-#    post_datas, order_info_map = get_dongchengjiaoshui_post_datas()
-#    #while True:
-#    removed_datas = []
-#    for post_data in post_datas:
-#        for account in accounts:
-#            post_data['post_account'] = account
-#            #print post_data['wangqianhetong']
-#            #if post_data['wangqianhetong'] == '32133':
-#            #    removed_datas.append(post_data)
-#            if dongchengjiaoshui_submitorder(jsessionid, post_data) == '1':
-#                removed_datas.append(post_data)
-#                dongchengjiaoshui_addtocart(jsessionid)
-#                break
-#    #print removed_datas
-#    post_datas = [data for data in post_datas if data not in removed_datas]
-#    #print post_datas
-
-def dongchengjiaoshui_asynchronous(jsessionid, post_info, order_info):
+def dongchengjiaoshui_async(jsessionid, post_info, order_info):
     threads = []
     for i in range(1,10):
         threads.append(gevent.spawn(dongchengjiaoshui_submitorder, jsessionid, post_info, order_info))
     gevent.joinall(threads)
 
 def dongchengjiaoshui():
-    jsessionid = get_jsessionid_from_file()
+    jsessionid = util.get_jsessionid_from_file()
     print 'jsessionid is:' + jsessionid
     dongchengjiaoshui_addtocart(jsessionid)
-    user_info_html = getuserinfo(jsessionid)
-    parse_user_info(user_info_html)
+    user_info_html = dongchengjiaoshui_getuserinfo(jsessionid)
+    dongchengjiaoshui_parse_user_info(user_info_html)
 
     for order_info in db.dongchengjiaoshui_select():
         if order_info[6] != '0':
@@ -270,10 +170,7 @@ def dongchengjiaoshui():
                      'dateType' : dateType, 'svpdUpLoadType' : svpdUpLoadType, 'spvdName' : spvdName,
                      'svpdUpLoadTypeDetail' : svpdUpLoadTypeDetail, 'spvdCode' : spvdCode, 'svpdDetailCategory': svpdDetailCategory,
                      'checkBoxProduct' : checkBoxProduct, 'eoContent' : eoContent, 'post_account' : account}
-
-        #while True:
-        #dongchengjiaoshui_submitorder(jsessionid, post_info, order_info)
-        dongchengjiaoshui_asynchronous(jsessionid, post_info, order_info)
+        dongchengjiaoshui_async(jsessionid, post_info, order_info)
 
 
 if __name__ == '__main__':
