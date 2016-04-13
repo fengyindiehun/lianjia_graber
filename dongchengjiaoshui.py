@@ -175,8 +175,8 @@ def dongchengjiaoshui():
                      'dateType' : dateType, 'svpdUpLoadType' : svpdUpLoadType, 'spvdName' : spvdName,
                      'svpdUpLoadTypeDetail' : svpdUpLoadTypeDetail, 'spvdCode' : spvdCode, 'svpdDetailCategory': svpdDetailCategory,
                      'checkBoxProduct' : checkBoxProduct, 'eoContent' : eoContent, 'post_account' : account}
-        #dongchengjiaoshui_sync(jsessionid, post_info, order_info)
-        dongchengjiaoshui_async(jsessionid, post_info, order_info)
+        dongchengjiaoshui_sync(jsessionid, post_info, order_info)
+        #dongchengjiaoshui_async(jsessionid, post_info, order_info)
 
 def dongchengjiaoshui_v2():
     jsessionid = util.get_jsessionid_from_file()
@@ -215,4 +215,5 @@ def dongchengjiaoshui_v2():
 
 if __name__ == '__main__':
     db.connect_db()
-    dongchengjiaoshui()
+    while True:
+        dongchengjiaoshui()

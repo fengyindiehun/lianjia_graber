@@ -49,6 +49,7 @@ def dodongchengjiaoshui_add():
     if request.method == 'POST':
         print 'dodongchengjiaoshui_add method is Post'
         hetonghao = request.form.get('hetonghao').encode('utf-8')
+        print 'hetonghao:' + hetonghao
         kehuxingming = request.form.get('kehuxingming').encode('utf-8')
         shenfenzheng = request.form.get('shenfenzheng').encode('utf-8')
         guohuzhuanyuan = request.form.get('guohuzhuanyuan').encode('utf-8')
@@ -95,6 +96,38 @@ def dodongchengguohu_add():
 
     db.connect_db()
     db.dongchengguohu_insert((shoumaixingming, goumaixingming, hetonghao, qishuipiaohao, guohuzhuanyuan, yuyueshijian, shijianduan, status))
+    return render_template('index.html')
+
+@app.route('/fengtaijiaoshui_add', methods=['GET', 'POST'])
+def fengtaijiaoshui_add():
+    return render_template('fengtaijiaoshui_add.html')
+
+@app.route('/dofengtaijiaoshui_add', methods=['GET', 'POST'])
+def dofengtaijiaoshui_add():
+    hetonghao = None
+    kehuxingming = None
+    shenfenzheng = None
+    guohuzhuanyuan = None
+    status = '0'
+    if request.method == 'POST':
+        print 'dofengtaijiaoshui_add method is Post'
+        hetonghao = request.form.get('hetonghao').encode('utf-8')
+        kehuxingming = request.form.get('kehuxingming').encode('utf-8')
+        shenfenzheng = request.form.get('shenfenzheng').encode('utf-8')
+        guohuzhuanyuan = request.form.get('guohuzhuanyuan').encode('utf-8')
+        yuyueshijian = request.form.get('yuyueshijian').encode('utf-8')
+        shijianduan = request.form.get('shijianduan').encode('utf-8')
+    else:
+        print 'dofengtaijiaoshui_add method is Get'
+        hetonghao = request.args.get('hetonghao').encode('utf-8')
+        kehuxingming = request.args.get('kehuxingming').encode('utf-8')
+        shenfenzheng = request.args.get('shenfenzheng').encode('utf-8')
+        guohuzhuanyuan = request.args.get('guohuzhuanyuan').encode('utf-8')
+        yuyueshijian = request.args.get('yuyueshijian').encode('utf-8')
+        shijianduan = request.args.get('shijianduan').encode('utf-8')
+
+    db.connect_db()
+    db.fengtaijiaoshui_insert((hetonghao, kehuxingming, shenfenzheng, guohuzhuanyuan, yuyueshijian, shijianduan, status))
     return render_template('index.html')
 
 if __name__ == '__main__':

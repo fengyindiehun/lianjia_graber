@@ -180,9 +180,18 @@ def fengtaiguohu_create_table():
     global con
     try:
         con.execute('drop table if exists fengtaiguohu')
-        con.execute('create table fengtaiguohu (id integer primary key not null, chushouxingming varchar(100) not null,'
-                    'goumaixingming varchar(100) not null, wangqianhetong varchar(100) not null, qiyuepiaohao varchar(100) not null, guohuzhuanyuan varchar(100) not null,'
-                    'yuyueshijian varchar(100) not null, dateType varchar(100),'
+        con.execute('create table fengtaiguohu ('
+                    'id integer primary key not null,'
+                    'chushouxingming varchar(100) not null,'
+                    'choushoushenfenzheng varchar(100) not null,'
+                    'goumaixingming varchar(100) not null,'
+                    'goumaishenfenzheng varchar(100) not null,'
+                    'wangqianhetong varchar(100) not null,'
+                    'qiyuepiaohao varchar(100) not null,'
+                    'guohuxingming varchar(100) not null,'
+                    'guohudianhua varchar(100) not null,'
+                    'yuyueshijian varchar(100) not null,'
+                    'dateType varchar(100),'
                     'status varchar(10) not null)')
     except Exception:
         print 'fengtaiguohu_create_table error'
@@ -191,8 +200,11 @@ def fengtaiguohu_create_table():
 def fengtaiguohu_insert(info):
     global con
     try:
-        con.execute('insert into fengtaiguohu (chushouxingming, goumaixingming, wangqianhetong, qiyuepiaohao,'
-                    'guohuzhuanyuan, yuyueshijian, dateType, status)'
+        con.execute('insert into fengtaiguohu ('
+                    'chushouxingming, chushoushenfenzheng, goumaixingming,'
+                    'goumaishenfenzheng, wangqianhetong, qiyuepiaohao,'
+                    'guohuxingming, guohudianhua, yuyueshijian,'
+                    'dateType, status)'
                     'values (?, ?, ?, ?, ?, ?, ?, ?)', info)
         con.commit()
     except Exception:

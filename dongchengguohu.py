@@ -177,8 +177,8 @@ def dongchengguohu():
                      'dateType' : dateType, 'svpdUpLoadType' : svpdUpLoadType, 'spvdName' : spvdName,
                      'svpdUpLoadTypeDetail' : svpdUpLoadTypeDetail, 'spvdCode' : spvdCode, 'svpdDetailCategory': svpdDetailCategory,
                      'checkBoxProduct' : checkBoxProduct, 'eoContent' : eoContent, 'post_account' : account}
-        #dongchengguohu_sync(jsessionid, post_info, order_info)
-        dongchengguohu_async(jsessionid, post_info, order_info)
+        dongchengguohu_sync(jsessionid, post_info, order_info)
+        #dongchengguohu_async(jsessionid, post_info, order_info)
 
 def dongchengguohu_v2():
     jsessionid = util.get_jsessionid_from_file()
