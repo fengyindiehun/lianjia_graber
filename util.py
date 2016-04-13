@@ -17,7 +17,6 @@ def write_jsessionid_to_file(jsessionid):
     fd.close()
 
 def get_jsessionid():
-    print 'hhhhh'
     url = 'http://bjxwgl.homelink.com.cn/'
     header = urllib.urlopen(url).info()
     cookie = header['Set-Cookie']

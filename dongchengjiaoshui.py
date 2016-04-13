@@ -65,7 +65,8 @@ def dongchengjiaoshui_parse_user_info(user_info_html):
     global tsphone
     global account
 
-    soup = BeautifulSoup(user_info_html, 'html.parser', from_encoding='latin-1')
+    #soup = BeautifulSoup(user_info_html, 'html.parser', from_encoding='latin-1')
+    soup = BeautifulSoup(user_info_html, 'html.parser')
     tsname = soup.find(id='post_user_input').get('value').encode('utf-8')
     tsuserid = soup.find(id='post_uid_input').get('value').encode('utf-8')
     marketemail = soup.find(name='input', attrs={'name':'marketemail'}).get('value').encode('utf-8')
@@ -100,7 +101,7 @@ def dongchengjiaoshui_submitorder(jsessionid, form_data, order_info):
     opener = urllib2.build_opener()
     opener.addheaders.append(('Cookie', 'JSESSIONID=' + jsessionid))
     data_encoded = urllib.urlencode(form_data)
-    print 'dongchengjiaoshui form_data:' + data_encoded
+    #print 'dongchengjiaoshui form_data:' + data_encoded
     fd_read = opener.open(url, data_encoded)
     html_content = fd_read.read()
     if html_content == '1':
@@ -135,11 +136,15 @@ def dongchengjiaoshui_submitorder(jsessionid, form_data, order_info):
             error_msg = html_content
         print error + error_msg
 
+def dongchengjiaoshui_sync(jsessionid, post_info, order_info):
+    for i in range(1, 2):
+        dongchengjiaoshui_submitorder(jsessionid, post_info, order_info)
+
 def dongchengjiaoshui_async(jsessionid, post_info, order_info):
-    threads = []
-    for i in range(1,10):
-        threads.append(gevent.spawn(dongchengjiaoshui_submitorder, jsessionid, post_info, order_info))
-    gevent.joinall(threads)
+    tasks = []
+    for i in range(1, 2):
+        tasks.append(gevent.spawn(dongchengjiaoshui_submitorder, jsessionid, post_info, order_info))
+    gevent.joinall(tasks)
 
 def dongchengjiaoshui():
     jsessionid = util.get_jsessionid_from_file()
@@ -170,8 +175,43 @@ def dongchengjiaoshui():
                      'dateType' : dateType, 'svpdUpLoadType' : svpdUpLoadType, 'spvdName' : spvdName,
                      'svpdUpLoadTypeDetail' : svpdUpLoadTypeDetail, 'spvdCode' : spvdCode, 'svpdDetailCategory': svpdDetailCategory,
                      'checkBoxProduct' : checkBoxProduct, 'eoContent' : eoContent, 'post_account' : account}
+        #dongchengjiaoshui_sync(jsessionid, post_info, order_info)
         dongchengjiaoshui_async(jsessionid, post_info, order_info)
 
+def dongchengjiaoshui_v2():
+    jsessionid = util.get_jsessionid_from_file()
+    print 'jsessionid is:' + jsessionid
+    dongchengjiaoshui_addtocart(jsessionid)
+    user_info_html = dongchengjiaoshui_getuserinfo(jsessionid)
+    dongchengjiaoshui_parse_user_info(user_info_html)
+    tasks = []
+
+    for order_info in db.dongchengjiaoshui_select():
+        if order_info[6] != '0':
+            continue
+        wangqianhetong = order_info[0]
+        kehuxingming = order_info[1]
+        kehushengfenzheng = order_info[2]
+        guohuzhuanyuan = order_info[3]
+        yuyueshijian = order_info[4]
+        dateType = order_info[5]
+        svpdUpLoadType = '-1'
+        spvdName = '东城预约缴税'
+        svpdUpLoadTypeDetail = '-1'
+        spvdCode = 'ZN0870'
+        svpdDetailCategory = '101336'
+        checkBoxProduct = '2925_2188_2566'
+        eoContent = '网签合同号：' + wangqianhetong + ',客户姓名：' + kehuxingming + ',身份证号：' + kehushengfenzheng + ',过户专员：' + guohuzhuanyuan + ',预约时间：' + yuyueshijian + ',' + dateType
+        post_info = {'tsname' : tsname, 'tsuserid' : tsuserid, 'marketemail' : marketemail,
+                     'tsphone' : tsphone, 'wangqianhetong' : wangqianhetong, 'kehuxingming' : kehuxingming,
+                     'kehushengfenzheng' : kehushengfenzheng, 'guohuzhuanyuan' : guohuzhuanyuan, 'yuyueshijian' : yuyueshijian,
+                     'dateType' : dateType, 'svpdUpLoadType' : svpdUpLoadType, 'spvdName' : spvdName,
+                     'svpdUpLoadTypeDetail' : svpdUpLoadTypeDetail, 'spvdCode' : spvdCode, 'svpdDetailCategory': svpdDetailCategory,
+                     'checkBoxProduct' : checkBoxProduct, 'eoContent' : eoContent, 'post_account' : account}
+        #dongchengjiaoshui_sync(jsessionid, post_info, order_info)
+        #dongchengjiaoshui_async(jsessionid, post_info, order_info)
+        tasks.append(gevent.spawn(dongchengjiaoshui_submitorder, jsessionid, post_info, order_info))
+    gevent.joinall(tasks)
 
 if __name__ == '__main__':
     db.connect_db()

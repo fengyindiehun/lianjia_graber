@@ -65,7 +65,8 @@ def dongchengguohu_parse_user_info(user_info_html):
     global tsphone
     global account
 
-    soup = BeautifulSoup(user_info_html, 'html.parser', from_encoding='latin-1')
+    #soup = BeautifulSoup(user_info_html, 'html.parser', from_encoding='latin-1')
+    soup = BeautifulSoup(user_info_html, 'html.parser')
     tsname = soup.find(id='post_user_input').get('value').encode('utf-8')
     tsuserid = soup.find(id='post_uid_input').get('value').encode('utf-8')
     marketemail = soup.find(name='input', attrs={'name':'marketemail'}).get('value').encode('utf-8')
@@ -101,7 +102,7 @@ def dongchengguohu_submitorder(jsessionid, form_data, order_info):
     opener = urllib2.build_opener()
     opener.addheaders.append(('Cookie', 'JSESSIONID=' + jsessionid))
     data_encoded = urllib.urlencode(form_data)
-    print 'dongchengguohu form_data:' + data_encoded
+    #print 'dongchengguohu form_data:' + data_encoded
     fd_read = opener.open(url, data_encoded)
     html_content = fd_read.read()
     if html_content == '1':
@@ -136,11 +137,15 @@ def dongchengguohu_submitorder(jsessionid, form_data, order_info):
             error_msg = html_content
         print error + error_msg
 
+def dongchengguohu_sync(jsessionid, post_info, order_info):
+    for i in range(1, 2):
+        dongchengguohu_submitorder(jsessionid, post_info, order_info)
+
 def dongchengguohu_async(jsessionid, post_info, order_info):
-    threads = []
-    for i in range(1,10):
-        threads.append(gevent.spawn(dongchengguohu_submitorder, jsessionid, post_info, order_info))
-    gevent.joinall(threads)
+    tasks = []
+    for i in range(1, 2):
+        tasks.append(gevent.spawn(dongchengguohu_submitorder, jsessionid, post_info, order_info))
+    gevent.joinall(tasks)
 
 def dongchengguohu():
     jsessionid = util.get_jsessionid_from_file()
@@ -172,9 +177,51 @@ def dongchengguohu():
                      'dateType' : dateType, 'svpdUpLoadType' : svpdUpLoadType, 'spvdName' : spvdName,
                      'svpdUpLoadTypeDetail' : svpdUpLoadTypeDetail, 'spvdCode' : spvdCode, 'svpdDetailCategory': svpdDetailCategory,
                      'checkBoxProduct' : checkBoxProduct, 'eoContent' : eoContent, 'post_account' : account}
+        #dongchengguohu_sync(jsessionid, post_info, order_info)
         dongchengguohu_async(jsessionid, post_info, order_info)
 
+def dongchengguohu_v2():
+    jsessionid = util.get_jsessionid_from_file()
+    print 'jsessionid is:' + jsessionid
+    dongchengguohu_addtocart(jsessionid)
+    user_info_html = dongchengguohu_getuserinfo(jsessionid)
+    dongchengguohu_parse_user_info(user_info_html)
+    tasks = []
+
+    #bp
+    order_infos = db.dongchengguohu_select()
+    for order_info in order_infos():
+    #for order_info in db.dongchengguohu_select():
+        if order_info[7] != '0':
+            continue
+        wangqianhetong = order_info[0]
+        kehuxingming = order_info[1]
+        kehushengfenzheng = order_info[2]
+        guohuzhuanyuan = order_info[3]
+        guohuzhuanyuan_zuihou = order_info[4]
+        yuyueshijian = order_info[5]
+        dateType = order_info[6]
+        svpdUpLoadType = '-1'
+        spvdName = '东城预约过户'
+        svpdUpLoadTypeDetail = '-1'
+        spvdCode = 'ZN0871'
+        svpdDetailCategory = '101336'
+        checkBoxProduct = '2969_2257_2826'
+        eoContent = '卖方姓名：' + wangqianhetong + ',买方姓名：' + kehuxingming + ',网签合同号：' + kehushengfenzheng + ',契税票号：' + guohuzhuanyuan + ',过户专员：' + guohuzhuanyuan_zuihou + ',预约时间：' + yuyueshijian + ',' + dateType
+        post_info = {'tsname' : tsname, 'tsuserid' : tsuserid, 'marketemail' : marketemail,
+                     'tsphone' : tsphone, 'wangqianhetong' : wangqianhetong, 'kehuxingming' : kehuxingming,
+                     'kehushengfenzheng' : kehushengfenzheng, 'guohuzhuanyuan' : guohuzhuanyuan, 'yuyueshijian' : yuyueshijian,
+                     'dateType' : dateType, 'svpdUpLoadType' : svpdUpLoadType, 'spvdName' : spvdName,
+                     'svpdUpLoadTypeDetail' : svpdUpLoadTypeDetail, 'spvdCode' : spvdCode, 'svpdDetailCategory': svpdDetailCategory,
+                     'checkBoxProduct' : checkBoxProduct, 'eoContent' : eoContent, 'post_account' : account}
+        #dongchengguohu_sync(jsessionid, post_info, order_info)
+        #dongchengguohu_async(jsessionid, post_info, order_info)
+        tasks.append(gevent.spawn(dongchengguohu_submitorder, jsessionid, post_info, order_info))
+    gevent.joinall(tasks)
 
 if __name__ == '__main__':
     db.connect_db()
-    dongchengguohu()
+    while True:
+        dongchengguohu()
+        #bp
+        #dongchengguohu_v2()

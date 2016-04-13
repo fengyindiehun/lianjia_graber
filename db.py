@@ -123,6 +123,110 @@ def dongchengguohu_select():
         connect_db()
 #####################################################################
 
+#####################################################################
+def fengtaijiaoshui_create_table():
+    global con
+    try:
+        con.execute('drop table if exists fengtaijiaoshui')
+        con.execute('create table fengtaijiaoshui (id integer primary key not null, hetonghao varchar(100) not null,'
+                    'kehuxingming varchar(100) not null, kehushenfenzheng varchar(100) not null, guohuzhuanyuan varchar(100) not null,'
+                    'yuyueshijian varchar(100) not null, dateType varchar(100),'
+                    'status varchar(10) not null)')
+    except Exception:
+        print 'fengtaijiaoshui_create_table error'
+        connect_db()
+
+def fengtaijiaoshui_insert(info):
+    global con
+    try:
+        con.execute('insert into fengtaijiaoshui (hetonghao, kehuxingming, kehushenfenzheng,'
+                    'guohuzhuanyuan, yuyueshijian, dateType, status)'
+                    'values (?, ?, ?, ?, ?, ?, ?)', info)
+        con.commit()
+    except Exception:
+        print 'fengtaijiaoshui_insert error'
+        connect_db()
+
+def fengtaijiaoshui_update(info):
+    try:
+        con.execute('update fengtaijiaoshui set '
+                    'hetonghao = ?,'
+                    'kehuxingming = ?,'
+                    'kehushenfenzheng = ?,'
+                    'guohuzhuanyuan = ?,'
+                    'yuyueshijian = ?,'
+                    'dateType = ?,'
+                    'status = ? where id = ?', info)
+        con.commit()
+    except Exception:
+        print 'fengtaijiaoshui_update error'
+        connect_db()
+
+def fengtaijiaoshui_select():
+    cur = con.cursor()
+    cur.execute('select hetonghao, kehuxingming, kehushenfenzheng,'
+                'guohuzhuanyuan, yuyueshijian, dateType, status, id from fengtaijiaoshui')
+    return cur.fetchall()
+    try:
+        print 'a'
+    except Exception:
+        print 'fengtaijiaoshui_select error'
+        connect_db()
+#####################################################################
+
+
+#####################################################################
+def fengtaiguohu_create_table():
+    global con
+    try:
+        con.execute('drop table if exists fengtaiguohu')
+        con.execute('create table fengtaiguohu (id integer primary key not null, chushouxingming varchar(100) not null,'
+                    'goumaixingming varchar(100) not null, wangqianhetong varchar(100) not null, qiyuepiaohao varchar(100) not null, guohuzhuanyuan varchar(100) not null,'
+                    'yuyueshijian varchar(100) not null, dateType varchar(100),'
+                    'status varchar(10) not null)')
+    except Exception:
+        print 'fengtaiguohu_create_table error'
+        connect_db()
+
+def fengtaiguohu_insert(info):
+    global con
+    try:
+        con.execute('insert into fengtaiguohu (chushouxingming, goumaixingming, wangqianhetong, qiyuepiaohao,'
+                    'guohuzhuanyuan, yuyueshijian, dateType, status)'
+                    'values (?, ?, ?, ?, ?, ?, ?, ?)', info)
+        con.commit()
+    except Exception:
+        print 'fengtaiguohu_insert error'
+        connect_db()
+
+def fengtaiguohu_update(info):
+    try:
+        con.execute('update fengtaiguohu set '
+                    'chushouxingming = ?,'
+                    'goumaixingming = ?,'
+                    'wangqianhetong = ?,'
+                    'qiyuepiaohao = ?,'
+                    'guohuzhuanyuan = ?,'
+                    'yuyueshijian = ?,'
+                    'dateType = ?,'
+                    'status = ? where id = ?', info)
+        con.commit()
+    except Exception:
+        print 'fengtaijiaoshui_update error'
+        connect_db()
+
+def fengtaiguohu_select():
+    cur = con.cursor()
+    cur.execute('select chushouxingming, goumaixingming, wangqianhetong, qiyuepiaohao,'
+                'guohuzhuanyuan, yuyueshijian, dateType, status, id from fengtaiguohu')
+    return cur.fetchall()
+    try:
+        print 'a'
+    except Exception:
+        print 'fengtaiguohu_select error'
+        connect_db()
+#####################################################################
+
 if __name__ == '__main__':
     connect_db()
     dongchengguohu_create_table()
