@@ -16,7 +16,7 @@ import util
 #####################################################################
 tsname = None
 tsuserid = None
-marketemail = None
+#marketemail = None
 tsphone = None
 account = None
 #####################################################################
@@ -61,7 +61,7 @@ def fengtaiguohu_get_user_pay_account():
 def fengtaiguohu_parse_user_info(user_info_html):
     global tsname
     global tsuserid
-    global marketemail
+    #global marketemail
     global tsphone
     global account
 
@@ -69,13 +69,13 @@ def fengtaiguohu_parse_user_info(user_info_html):
     soup = BeautifulSoup(user_info_html, 'html.parser')
     tsname = soup.find(id='post_user_input').get('value').encode('utf-8')
     tsuserid = soup.find(id='post_uid_input').get('value').encode('utf-8')
-    marketemail = soup.find(name='input', attrs={'name':'marketemail'}).get('value').encode('utf-8')
+    #marketemail = soup.find(name='input', attrs={'name':'marketemail'}).get('value').encode('utf-8')
     tsphone = soup.find(id='post_phone_input').get('value').encode('utf-8')
     account = fengtaiguohu_get_user_pay_account()
 
     print 'tsname:' + tsname
     print 'tsuserid:' + tsuserid
-    print 'marketemail:'+ marketemail
+    #print 'marketemail:'+ marketemail
     print 'tsphone:' + tsphone
     print 'account' + account
 
@@ -102,13 +102,14 @@ def fengtaiguohu_submitorder(jsessionid, form_data, order_info):
     opener = urllib2.build_opener()
     opener.addheaders.append(('Cookie', 'JSESSIONID=' + jsessionid))
     data_encoded = urllib.urlencode(form_data)
-    #print 'fengtaiguohu form_data:' + data_encoded
+    print 'fengtaiguohu form_data:' + data_encoded
     fd_read = opener.open(url, data_encoded)
     html_content = fd_read.read()
     if html_content == '1':
         print 'http://bjxwgl.homelink.com.cn/order/order_payOrderTSByAccount.action success, contract sd:' + form_data['kehushengfenzheng'] + ' success, '
-        order_info[6] = '1'
-        db.fengtaiguohu_update(order_info)
+        order_info_list = list(order_info)
+        order_info_list[10] = '1'
+        db.fengtaiguohu_update(order_info_list)
         fengtaiguohu_addtocart(jsessionid)
     else:
         error = 'http://bjxwgl.homelink.com.cn/order/order_payOrderTSByAccount.action failed, contract id:' + form_data['kehushengfenzheng'] + ' failed, '
@@ -154,31 +155,40 @@ def fengtaiguohu():
     user_info_html = fengtaiguohu_getuserinfo(jsessionid)
     fengtaiguohu_parse_user_info(user_info_html)
 
-    for order_info in db.fengtaiguohu_select():
-        if order_info[7] != '0':
-            continue
-        wangqianhetong = order_info[0]
-        kehuxingming = order_info[1]
-        kehushengfenzheng = order_info[2]
-        guohuzhuanyuan = order_info[3]
-        guohuzhuanyuan_zuihou = order_info[4]
-        yuyueshijian = order_info[5]
-        dateType = order_info[6]
-        svpdUpLoadType = '-1'
-        spvdName = '丰台预约过户'
-        svpdUpLoadTypeDetail = '-1'
-        spvdCode = 'ZN0873'
-        svpdDetailCategory = '101336'
-        checkBoxProduct = '3438_2815_3298'
-        eoContent = '卖方姓名：' + wangqianhetong + ',买方姓名：' + kehuxingming + ',网签合同号：' + kehushengfenzheng + ',契税票号：' + guohuzhuanyuan + ',过户专员：' + guohuzhuanyuan_zuihou + ',预约时间：' + yuyueshijian + ',' + dateType
-        post_info = {'tsname' : tsname, 'tsuserid' : tsuserid, 'marketemail' : marketemail,
-                     'tsphone' : tsphone, 'wangqianhetong' : wangqianhetong, 'kehuxingming' : kehuxingming,
-                     'kehushengfenzheng' : kehushengfenzheng, 'guohuzhuanyuan' : guohuzhuanyuan, 'yuyueshijian' : yuyueshijian,
-                     'dateType' : dateType, 'svpdUpLoadType' : svpdUpLoadType, 'spvdName' : spvdName,
-                     'svpdUpLoadTypeDetail' : svpdUpLoadTypeDetail, 'spvdCode' : spvdCode, 'svpdDetailCategory': svpdDetailCategory,
-                     'checkBoxProduct' : checkBoxProduct, 'eoContent' : eoContent, 'post_account' : account}
-        #fengtaiguohu_sync(jsessionid, post_info, order_info)
-        fengtaiguohu_async(jsessionid, post_info, order_info)
+    while True:
+        for order_info in db.fengtaiguohu_select():
+            if order_info[10] != '0':
+                continue
+            wangqianhetong = order_info[0]
+            kehuxingming = order_info[1]
+            kehushengfenzheng = order_info[2]
+            guohuzhuanyuan = order_info[3]
+            guohuzhuanyuan_zuihou_1 = order_info[4]
+            guohuzhuanyuan_zuihou_2 = order_info[5]
+            guohuzhuanyuan_zuihou_3 = order_info[6]
+            guohuzhuanyuan_zuihou_4 = order_info[7]
+            yuyueshijian = order_info[8]
+            dateType = order_info[9]
+            svpdUpLoadType = '-1'
+            spvdName = '丰台预约过户'
+            svpdUpLoadTypeDetail = '-1'
+            spvdCode = 'ZN0873'
+            svpdDetailCategory = '101336'
+            checkBoxProduct = '3438_2815_3298'
+            eoContent = '卖方姓名：' + wangqianhetong + ',卖方身份证号码：' + kehuxingming + ',买方姓名：' + kehushengfenzheng + ',买方身份证号码：' + guohuzhuanyuan + ',网签合同号：' + guohuzhuanyuan_zuihou_1 + ',契税票号：' + guohuzhuanyuan_zuihou_2 + ',过户专员姓名：' + guohuzhuanyuan_zuihou_3 + ',过户专员电话：' + guohuzhuanyuan_zuihou_4 + ',预约时间：' + yuyueshijian
+            post_info = {'tsname' : tsname, 'tsuserid' : tsuserid,
+                        'tsphone' : tsphone, 'wangqianhetong' : wangqianhetong, 'kehuxingming' : kehuxingming,
+                        'kehushengfenzheng' : kehushengfenzheng, 'guohuzhuanyuan' : guohuzhuanyuan,
+                        'guohuzhuanyuan_zuihou' : guohuzhuanyuan_zuihou_1,
+                        #'guohuzhuanyuan_zuihou' : guohuzhuanyuan_zuihou_2,
+                        #'guohuzhuanyuan_zuihou' : guohuzhuanyuan_zuihou_3,
+                        #'guohuzhuanyuan_zuihou' : guohuzhuanyuan_zuihou_4,
+                        'yuyueshijian' : yuyueshijian,
+                        'dateType' : dateType, 'svpdUpLoadType' : svpdUpLoadType, 'spvdName' : spvdName,
+                        'svpdUpLoadTypeDetail' : svpdUpLoadTypeDetail, 'spvdCode' : spvdCode, 'svpdDetailCategory': svpdDetailCategory,
+                        'checkBoxProduct' : checkBoxProduct, 'eoContent' : eoContent, 'post_account' : account}
+            #fengtaiguohu_sync(jsessionid, post_info, order_info)
+            fengtaiguohu_async(jsessionid, post_info, order_info)
 
 def fengtaiguohu_v2():
     jsessionid = util.get_jsessionid_from_file()
@@ -189,39 +199,44 @@ def fengtaiguohu_v2():
     tasks = []
 
     #bp
-    order_infos = db.fengtaiguohu_select()
-    for order_info in order_infos():
-    #for order_info in db.fengtaiguohu_select():
-        if order_info[7] != '0':
-            continue
-        wangqianhetong = order_info[0]
-        kehuxingming = order_info[1]
-        kehushengfenzheng = order_info[2]
-        guohuzhuanyuan = order_info[3]
-        guohuzhuanyuan_zuihou = order_info[4]
-        yuyueshijian = order_info[5]
-        dateType = order_info[6]
-        svpdUpLoadType = '-1'
-        spvdName = '丰台预约过户'
-        svpdUpLoadTypeDetail = '-1'
-        spvdCode = 'ZN0873'
-        svpdDetailCategory = '101336'
-        checkBoxProduct = '3438_2815_3298'
-        eoContent = '卖方姓名：' + wangqianhetong + ',买方姓名：' + kehuxingming + ',网签合同号：' + kehushengfenzheng + ',契税票号：' + guohuzhuanyuan + ',过户专员：' + guohuzhuanyuan_zuihou + ',预约时间：' + yuyueshijian + ',' + dateType
-        post_info = {'tsname' : tsname, 'tsuserid' : tsuserid, 'marketemail' : marketemail,
-                     'tsphone' : tsphone, 'wangqianhetong' : wangqianhetong, 'kehuxingming' : kehuxingming,
-                     'kehushengfenzheng' : kehushengfenzheng, 'guohuzhuanyuan' : guohuzhuanyuan, 'yuyueshijian' : yuyueshijian,
-                     'dateType' : dateType, 'svpdUpLoadType' : svpdUpLoadType, 'spvdName' : spvdName,
-                     'svpdUpLoadTypeDetail' : svpdUpLoadTypeDetail, 'spvdCode' : spvdCode, 'svpdDetailCategory': svpdDetailCategory,
-                     'checkBoxProduct' : checkBoxProduct, 'eoContent' : eoContent, 'post_account' : account}
-        #fengtaiguohu_sync(jsessionid, post_info, order_info)
-        #fengtaiguohu_async(jsessionid, post_info, order_info)
-        tasks.append(gevent.spawn(fengtaiguohu_submitorder, jsessionid, post_info, order_info))
-    gevent.joinall(tasks)
+    while True:
+        order_infos = db.fengtaiguohu_select()
+        for order_info in order_infos():
+        #for order_info in db.fengtaiguohu_select():
+            if order_info[11] != '0':
+                continue
+            wangqianhetong = order_info[0]
+            kehuxingming = order_info[1]
+            kehushengfenzheng = order_info[2]
+            guohuzhuanyuan = order_info[3]
+            guohuzhuanyuan_zuihou = order_info[4]
+            yuyueshijian = order_info[5]
+            dateType = order_info[6]
+            svpdUpLoadType = '-1'
+            spvdName = '丰台预约过户'
+            svpdUpLoadTypeDetail = '-1'
+            spvdCode = 'ZN0873'
+            svpdDetailCategory = '101336'
+            checkBoxProduct = '3438_2815_3298'
+            eoContent = '卖方姓名：' + wangqianhetong + ',卖方身份证号码：' + kehuxingming + ',买方姓名：' + kehushengfenzheng + ',买方身份证号码：' + guohuzhuanyuan + ',网签合同号：' + guohuzhuanyuan_zuihou_1 + ',契税票号：' + guohuzhuanyuan_zuihou_2 + ',过户专员姓名：' + guohuzhuanyuan_zuihou_3 + ',过户专员电话：' + guohuzhuanyuan_zuihou_4 + ',预约时间：' + yuyueshijian
+            post_info = {'tsname' : tsname, 'tsuserid' : tsuserid,
+                        'tsphone' : tsphone, 'wangqianhetong' : wangqianhetong, 'kehuxingming' : kehuxingming,
+                        'kehushengfenzheng' : kehushengfenzheng, 'guohuzhuanyuan' : guohuzhuanyuan,
+                        'guohuzhuanyuan_zuihou' : guohuzhuanyuan_zuihou_1,
+                        #'guohuzhuanyuan_zuihou' : guohuzhuanyuan_zuihou_2,
+                        #'guohuzhuanyuan_zuihou' : guohuzhuanyuan_zuihou_3,
+                        #'guohuzhuanyuan_zuihou' : guohuzhuanyuan_zuihou_4,
+                        'yuyueshijian' : yuyueshijian,
+                        'dateType' : dateType, 'svpdUpLoadType' : svpdUpLoadType, 'spvdName' : spvdName,
+                        'svpdUpLoadTypeDetail' : svpdUpLoadTypeDetail, 'spvdCode' : spvdCode, 'svpdDetailCategory': svpdDetailCategory,
+                        'checkBoxProduct' : checkBoxProduct, 'eoContent' : eoContent, 'post_account' : account}
+            #fengtaiguohu_sync(jsessionid, post_info, order_info)
+            #fengtaiguohu_async(jsessionid, post_info, order_info)
+            tasks.append(gevent.spawn(fengtaiguohu_submitorder, jsessionid, post_info, order_info))
+        gevent.joinall(tasks)
 
 if __name__ == '__main__':
     db.connect_db()
-    while True:
-        fengtaiguohu()
-        #bp
-        #fengtaiguohu_v2()
+    #while True:
+    fengtaiguohu()
+    #fengtaiguohu_v2()

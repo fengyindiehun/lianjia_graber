@@ -106,8 +106,9 @@ def fengtaijiaoshui_submitorder(jsessionid, form_data, order_info):
     html_content = fd_read.read()
     if html_content == '1':
         print 'http://bjxwgl.homelink.com.cn/order/order_payOrderTSByAccount.action success, contract sd:' + form_data['wangqianhetong'] + ' success, '
-        order_info[6] = '1'
-        db.fengtaijiaoshui_update(order_info)
+        order_info_list = list(order_info)
+        order_info_list[6] = '1'
+        db.fengtaijiaoshui_update(order_info_list)
         fengtaijiaoshui_addtocart(jsessionid)
     else:
         error = 'http://bjxwgl.homelink.com.cn/order/order_payOrderTSByAccount.action failed, contract id:' + form_data['wangqianhetong'] + ' failed, '

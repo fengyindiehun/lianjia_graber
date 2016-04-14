@@ -97,6 +97,7 @@ def dongchengguohu_insert(info):
 
 def dongchengguohu_update(info):
     try:
+        print 'hello'
         con.execute('update dongchengguohu set '
                     'chushouxingming = ?,'
                     'goumaixingming = ?,'
@@ -183,12 +184,12 @@ def fengtaiguohu_create_table():
         con.execute('create table fengtaiguohu ('
                     'id integer primary key not null,'
                     'chushouxingming varchar(100) not null,'
-                    'choushoushenfenzheng varchar(100) not null,'
+                    'chushoushenfenzheng varchar(100) not null,'
                     'goumaixingming varchar(100) not null,'
                     'goumaishenfenzheng varchar(100) not null,'
                     'wangqianhetong varchar(100) not null,'
                     'qiyuepiaohao varchar(100) not null,'
-                    'guohuxingming varchar(100) not null,'
+                    'guohuzhuanyuan varchar(100) not null,'
                     'guohudianhua varchar(100) not null,'
                     'yuyueshijian varchar(100) not null,'
                     'dateType varchar(100),'
@@ -199,14 +200,22 @@ def fengtaiguohu_create_table():
 
 def fengtaiguohu_insert(info):
     global con
+    con.execute('insert into fengtaiguohu ('
+                'chushouxingming, chushoushenfenzheng, goumaixingming,'
+                'goumaishenfenzheng, wangqianhetong, qiyuepiaohao,'
+                'guohuzhuanyuan, guohudianhua, yuyueshijian,'
+                'dateType, status)'
+                'values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', info)
+    con.commit()
     try:
-        con.execute('insert into fengtaiguohu ('
-                    'chushouxingming, chushoushenfenzheng, goumaixingming,'
-                    'goumaishenfenzheng, wangqianhetong, qiyuepiaohao,'
-                    'guohuxingming, guohudianhua, yuyueshijian,'
-                    'dateType, status)'
-                    'values (?, ?, ?, ?, ?, ?, ?, ?)', info)
-        con.commit()
+        print 'jkl'
+        #con.execute('insert into fengtaiguohu ('
+        #            'chushouxingming, chushoushenfenzheng, goumaixingming,'
+        #            'goumaishenfenzheng, wangqianhetong, qiyuepiaohao,'
+        #            'guohuzhuanyuan, guohudianhua, yuyueshijian,'
+        #            'dateType, status)'
+        #            'values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', info)
+        #con.commit()
     except Exception:
         print 'fengtaiguohu_insert error'
         connect_db()
@@ -215,10 +224,13 @@ def fengtaiguohu_update(info):
     try:
         con.execute('update fengtaiguohu set '
                     'chushouxingming = ?,'
+                    'chushoushenfenzheng = ?,'
                     'goumaixingming = ?,'
+                    'goumaishenfenzheng = ?,'
                     'wangqianhetong = ?,'
                     'qiyuepiaohao = ?,'
                     'guohuzhuanyuan = ?,'
+                    'guohudianhua = ?,'
                     'yuyueshijian = ?,'
                     'dateType = ?,'
                     'status = ? where id = ?', info)
@@ -229,8 +241,8 @@ def fengtaiguohu_update(info):
 
 def fengtaiguohu_select():
     cur = con.cursor()
-    cur.execute('select chushouxingming, goumaixingming, wangqianhetong, qiyuepiaohao,'
-                'guohuzhuanyuan, yuyueshijian, dateType, status, id from fengtaiguohu')
+    cur.execute('select chushouxingming, chushoushenfenzheng, goumaixingming, goumaishenfenzheng,  wangqianhetong, qiyuepiaohao,'
+                'guohuzhuanyuan, guohudianhua, yuyueshijian, dateType, status, id from fengtaiguohu')
     return cur.fetchall()
     try:
         print 'a'
@@ -241,7 +253,11 @@ def fengtaiguohu_select():
 
 if __name__ == '__main__':
     connect_db()
-    dongchengguohu_create_table()
+    fengtaijiaoshui_create_table()
+    #fengtaijiaoshui_create_table()
+    #fengtaiguohu_create_table()
+    #print fengtaiguohu_select()
+    #dongchengguohu_create_table()
     #dongchengjiaoshui_create_table()
     #a = ('123', 'ss', '456', 'mm', '0')
     #for i in a:

@@ -43,6 +43,22 @@ def user_login(username, password, captcha):
     url = 'http://bjxwgl.homelink.com.cn/usr/login.action'
     opener = urllib2.build_opener()
     opener.addheaders.append(('Cookie', 'JSESSIONID=' + jsessionid))
+    opener.addheaders.append(('Origin', 'http://bjxwgl.homelink.com.cn'))
+    opener.addheaders.append(('Accept-Encoding', 'gzip, deflate'))
+    opener.addheaders.append(('Accept-Language', 'zh-CN,zh;q=0.8,en;q=0.6'))
+    opener.addheaders.append(('User-Agent', 'Mozilla/5.0 (X11; Linux i686) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/44.0.2403.89 Chrome/44.0.2403.89 Safari/537.36'))
+    opener.addheaders.append(('HTTPS', '1'))
+    opener.addheaders.append(('Content-Type', 'application/x-www-form-urlencoded'))
+    opener.addheaders.append(('Accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'))
+    opener.addheaders.append(('Cache-Control', 'max-age=0'))
+    opener.addheaders.append(('Referer', 'http://bjxwgl.homelink.com.cn/'))
+    opener.addheaders.append(('Connection', 'keep-alive'))
     form_data = {'userCode' : username, 'password' : password, 'captcha' : captcha, 'urlcode' : '/'}
     data_encoded = urllib.urlencode(form_data)
+    print data_encoded
     fd_read = opener.open(url, data_encoded)
+    print 'hh'
+    print fd_read.getcode()
+    print fd_read.info()
+    html_content = fd_read.read()
+    print html_content
