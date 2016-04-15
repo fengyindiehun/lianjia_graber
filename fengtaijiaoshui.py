@@ -215,6 +215,7 @@ def fengtaijiaoshui_v2():
     gevent.joinall(tasks)
 
 if __name__ == '__main__':
+    util.monica()
     db.connect_db()
     while True:
         fengtaijiaoshui()

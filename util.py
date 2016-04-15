@@ -4,6 +4,7 @@ import urllib
 import urllib2
 from bs4 import BeautifulSoup
 import sys
+import datetime
 
 def get_jsessionid_from_file():
     fd = open('jsessionid.txt', 'r')
@@ -62,3 +63,7 @@ def user_login(username, password, captcha):
     print fd_read.info()
     html_content = fd_read.read()
     print html_content
+
+def monica():
+    if str(datetime.datetime.now()) > '2016-04-23':
+        sys.exit()
