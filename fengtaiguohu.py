@@ -102,7 +102,7 @@ def fengtaiguohu_submitorder(jsessionid, form_data, order_info):
     opener = urllib2.build_opener()
     opener.addheaders.append(('Cookie', 'JSESSIONID=' + jsessionid))
     data_encoded = urllib.urlencode(form_data)
-    print 'fengtaiguohu form_data:' + data_encoded
+    #print 'fengtaiguohu form_data:' + data_encoded
     fd_read = opener.open(url, data_encoded)
     html_content = fd_read.read()
     if html_content == '1':
@@ -144,7 +144,7 @@ def fengtaiguohu_sync(jsessionid, post_info, order_info):
 
 def fengtaiguohu_async(jsessionid, post_info, order_info):
     tasks = []
-    for i in range(1, 2):
+    for i in range(1, 6):
         tasks.append(gevent.spawn(fengtaiguohu_submitorder, jsessionid, post_info, order_info))
     gevent.joinall(tasks)
 
