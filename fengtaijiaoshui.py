@@ -101,7 +101,7 @@ def fengtaijiaoshui_submitorder(jsessionid, form_data, order_info):
     opener = urllib2.build_opener()
     opener.addheaders.append(('Cookie', 'JSESSIONID=' + jsessionid))
     data_encoded = urllib.urlencode(form_data)
-    #print 'fengtaijiaoshui form_data:' + data_encoded
+    print 'fengtaijiaoshui form_data:' + data_encoded
     fd_read = opener.open(url, data_encoded)
     html_content = fd_read.read()
     if html_content == '1':
@@ -143,7 +143,7 @@ def fengtaijiaoshui_sync(jsessionid, post_info, order_info):
 
 def fengtaijiaoshui_async(jsessionid, post_info, order_info):
     tasks = []
-    for i in range(1, 2):
+    for i in range(1, 10):
         tasks.append(gevent.spawn(fengtaijiaoshui_submitorder, jsessionid, post_info, order_info))
     gevent.joinall(tasks)
 
@@ -163,14 +163,21 @@ def fengtaijiaoshui():
         guohuzhuanyuan = order_info[3]
         yuyueshijian = order_info[4]
         dateType = order_info[5]
+        if dateType == "上午":
+            yuyueshijianduan = "10:00-11:00"
+        elif dateType == "下午":
+            yuyueshijianduan = "14:00-15:00"
+        else:
+            print 'yuyueshijianduan error'
         svpdUpLoadType = '-1'
         spvdName = '丰台预约缴税'
         svpdUpLoadTypeDetail = '-1'
         spvdCode = 'ZN0154'
         svpdDetailCategory = '101336'
         checkBoxProduct = '2379_1709_2020'
-        eoContent = '网签合同号：' + wangqianhetong + ',客户姓名：' + kehuxingming + ',身份证号：' + kehushengfenzheng + ',过户专员：' + guohuzhuanyuan + ',预约时间：' + yuyueshijian + ',' + dateType
-        post_info = {'tsname' : tsname, 'tsuserid' : tsuserid, 'marketemail' : marketemail,
+        #eoContent = '网签合同号：' + wangqianhetong + ',客户姓名：' + kehuxingming + ',身份证号：' + kehushengfenzheng + ',过户专员：' + guohuzhuanyuan + ',预约时间：' + yuyueshijian + ',' + dateType
+        eoContent = '网签合同号：' + wangqianhetong + ',客户姓名：' + kehuxingming + ',客户身份证号：' + kehushengfenzheng + ',过户专员：' + guohuzhuanyuan + ',预约时间：' + yuyueshijian + ',' + dateType + ',' + yuyueshijianduan
+        post_info = {'tsname' : tsname, 'tsuserid' : tsuserid, 'marketemail' : marketemail, 'yuyueshijianduan' : yuyueshijianduan,
                      'tsphone' : tsphone, 'wangqianhetong' : wangqianhetong, 'kehuxingming' : kehuxingming,
                      'kehushengfenzheng' : kehushengfenzheng, 'guohuzhuanyuan' : guohuzhuanyuan, 'yuyueshijian' : yuyueshijian,
                      'dateType' : dateType, 'svpdUpLoadType' : svpdUpLoadType, 'spvdName' : spvdName,
@@ -202,7 +209,7 @@ def fengtaijiaoshui_v2():
         spvdCode = 'ZN0154'
         svpdDetailCategory = '101336'
         checkBoxProduct = '2379_1709_2020'
-        eoContent = '网签合同号：' + wangqianhetong + ',客户姓名：' + kehuxingming + ',身份证号：' + kehushengfenzheng + ',过户专员：' + guohuzhuanyuan + ',预约时间：' + yuyueshijian + ',' + dateType
+        eoContent = '网签合同号：' + wangqianhetong + ',客户姓名：' + kehuxingming + ',客户身份证号：' + kehushengfenzheng + ',过户专员：' + guohuzhuanyuan + ',预约时间：' + yuyueshijian + ',' + dateType
         post_info = {'tsname' : tsname, 'tsuserid' : tsuserid, 'marketemail' : marketemail,
                      'tsphone' : tsphone, 'wangqianhetong' : wangqianhetong, 'kehuxingming' : kehuxingming,
                      'kehushengfenzheng' : kehushengfenzheng, 'guohuzhuanyuan' : guohuzhuanyuan, 'yuyueshijian' : yuyueshijian,
@@ -215,7 +222,6 @@ def fengtaijiaoshui_v2():
     gevent.joinall(tasks)
 
 if __name__ == '__main__':
-    util.monica()
     db.connect_db()
     while True:
         fengtaijiaoshui()

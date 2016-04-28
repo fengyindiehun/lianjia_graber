@@ -202,7 +202,8 @@ def dongchengjiaoshui_v2():
         spvdCode = 'ZN0870'
         svpdDetailCategory = '101336'
         checkBoxProduct = '2925_2188_2566'
-        eoContent = '网签合同号：' + wangqianhetong + ',客户姓名：' + kehuxingming + ',身份证号：' + kehushengfenzheng + ',过户专员：' + guohuzhuanyuan + ',预约时间：' + yuyueshijian + ',' + dateType
+        #eoContent = '网签合同号：' + wangqianhetong + ',客户姓名：' + kehuxingming + ',身份证号：' + kehushengfenzheng + ',过户专员：' + guohuzhuanyuan + ',预约时间：' + yuyueshijian + ',' + dateType
+        eoContent = '网签合同号：' + wangqianhetong + ',客户姓名：' + kehuxingming + ',客户身份证号：' + kehushengfenzheng + ',过户专员：' + guohuzhuanyuan + ',预约时间：' + yuyueshijian + ',' + dateType
         post_info = {'tsname' : tsname, 'tsuserid' : tsuserid, 'marketemail' : marketemail,
                      'tsphone' : tsphone, 'wangqianhetong' : wangqianhetong, 'kehuxingming' : kehuxingming,
                      'kehushengfenzheng' : kehushengfenzheng, 'guohuzhuanyuan' : guohuzhuanyuan, 'yuyueshijian' : yuyueshijian,
@@ -215,7 +216,6 @@ def dongchengjiaoshui_v2():
     gevent.joinall(tasks)
 
 if __name__ == '__main__':
-    util.monica()
     db.connect_db()
     while True:
         dongchengjiaoshui()

@@ -35,7 +35,7 @@ def get_captcha():
     opener.addheaders.append(('Cookie', 'JSESSIONID=' + jsessionid))
     fd_read = opener.open(url)
     captcha_content = fd_read.read()
-    fd_write = open('./static/captcha.jpg', 'w')
+    fd_write = open('./static/captcha.jpg', 'wb')
     fd_write.write(captcha_content)
     fd_write.close()
 
@@ -64,6 +64,3 @@ def user_login(username, password, captcha):
     html_content = fd_read.read()
     print html_content
 
-def monica():
-    if str(datetime.datetime.now()) > '2016-04-23':
-        sys.exit()
