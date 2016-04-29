@@ -1,0 +1,1252 @@
+
+
+
+
+
+<!DOCTYPE html>
+
+<html>
+
+    <head>
+
+        <meta charset="utf-8">
+
+        <meta name="viewport" content="width=device-width,initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+
+        <title>??????</title>
+
+        <link rel="stylesheet" type="text/css" href="/wangqian/css/reset.css"/>
+
+        <link rel="stylesheet" type="text/css" href="/wangqian/css/signedContractPlatform.css" />
+
+        <script type="text/javascript" src="/wangqian/js/jquery-1.11.1.min.js" ></script>
+
+        <script type="text/javascript" src="/wangqian/js/signedContractPlatform.js" ></script>
+
+        <script type="text/javascript" src="/js/jquery.form.js"></script>
+
+        <script src="/js/datepicker/WdatePicker.js" type="text/javascript"></script>
+
+        <style type="text/css">
+
+        .model_talk_div {
+
+            border-radius: 4px;
+
+            position: fixed;
+
+            margin-top:200px;
+
+        }
+
+        </style>
+
+        <script type="text/javascript">
+
+        
+
+        $(document).ready(function() {
+
+            
+
+            window.timeIndex = 0;
+
+              
+
+            getAccountListByWeixin();
+
+            
+
+            //??2???????
+
+            getDateArrBymitinue();
+
+            window.setInterval(getDateArrBymitinue,3000); 
+
+            
+
+            window.systemApply = 0;
+
+        });
+
+        
+
+        
+
+        function applyOrderBySuccess(){
+
+            
+
+            $('#action_buttom_div').css("display","none");
+
+            
+
+            var inputArr = $("#p_uncheck_").find("input");
+
+            for(var i= 0;i<4;i++){
+
+                if($(inputArr[i]).val()==""){
+
+                    alert("???????????!");
+
+                    $('#action_buttom_div').css("display","block");
+
+                    return;
+
+                }
+
+            }
+
+            
+
+            var userArr = $("#info_check_user").find("input");
+
+            for(var i= 0;i<4;i++){
+
+                if($(userArr[i]).val()==""){
+
+                    alert("???????????!");
+
+                    $('#action_buttom_div').css("display","block");
+
+                    return;
+
+                }
+
+            }
+
+            
+
+            refreshOrderComment();
+
+            
+
+            // ???? 
+
+            var PingLun = $("#eoContent").val();
+
+             
+
+            if(PingLun==""){
+
+                $('#action_buttom_div').css("display","block");
+
+                alert("???????????!");
+
+                return;
+
+             
+
+            }
+
+            
+
+            $('#order_submit_system').css("left",($(window).width()/2-150)+"px");
+
+            $('#order_submit_system').css("display","block");
+
+            
+
+            window.systemApply = 1;
+
+        }
+
+        
+
+        
+
+        function selectOutDate(obj,date,type){
+
+            $("div.active").removeClass("active");
+
+            $(obj).addClass("active");
+
+            $("input[name='yuyueshijian']").val(date);
+
+            $("input[name='dateType']").val(type);
+
+            refreshOrderComment();
+
+            
+
+            //?????
+
+            $.ajax({
+
+                type: "POST",
+
+                url: "/weixin/getTourStockTimeListByDate.action",
+
+                dataType: "json",
+
+                data:{"selectDate":date,"type":type,"sizeId":2020},
+
+                success: function(json){
+
+                    $("#yuyueshijianduan").html("<option value=''>???</option>");
+
+                    for(var i=0;i<json.length;i++){
+
+                        $("#yuyueshijianduan").append("<option value='"+json[i].ZYTD_ZNTS_TIME+"'>"+json[i].ZYTD_ZNTS_TIME+"(??"+(json[i].ZYTD_STOCK_QTY-json[i].ZYTD_SALE_QTY)+")</option>");
+
+                    }
+
+                    refreshOrderComment();
+
+                }
+
+            });
+
+            
+
+            
+
+        }
+
+        
+
+        function selectOutDateBySystem(date,type){
+
+            $("input[name='yuyueshijian']").val(date);
+
+            $("input[name='dateType']").val(type);
+
+            
+
+            refreshOrderComment();
+
+            
+
+            //?????
+
+            $.ajax({
+
+                type: "POST",
+
+                url: "/weixin/getTourStockTimeListByDate.action",
+
+                dataType: "json",
+
+                data:{"selectDate":date,"type":type,"sizeId":2020},
+
+                success: function(json){
+
+                    $("#yuyueshijianduan").html("<option value=''>???</option>");
+
+                    var haveCnt = 0;
+
+                    for(var i=0;i<json.length;i++){
+
+                        if(json[i].ZYTD_STOCK_QTY-json[i].ZYTD_SALE_QTY>0&&haveCnt == 0){
+
+                            $("#yuyueshijianduan").append("<option selected='selected' value='"+json[i].ZYTD_ZNTS_TIME+"'>"+json[i].ZYTD_ZNTS_TIME+"(??"+(json[i].ZYTD_STOCK_QTY-json[i].ZYTD_SALE_QTY)+")</option>");
+
+                            haveCnt = 1;
+
+                        }else{
+
+                            $("#yuyueshijianduan").append("<option value='"+json[i].ZYTD_ZNTS_TIME+"'>"+json[i].ZYTD_ZNTS_TIME+"(??"+(json[i].ZYTD_STOCK_QTY-json[i].ZYTD_SALE_QTY)+")</option>");
+
+                        }
+
+                    }
+
+                    refreshOrderComment();
+
+                    if(haveCnt==1){
+
+                        submitOrderByuser();
+
+                    }else{
+
+                        $("div.active").removeClass("active");
+
+                    }
+
+                }
+
+            });
+
+            
+
+        }
+
+        
+
+        function refreshOrderComment(){
+
+
+
+            var inputArr = $("#p_uncheck_").find("input");
+
+            var selectArr = $("#p_uncheck_").find("select");
+
+            
+
+            var jiaoStr = "?????:"+$(inputArr[0]).val()+",";
+
+            jiaoStr += "????:"+$(inputArr[1]).val()+",";
+
+            jiaoStr += "??????:"+$(inputArr[2]).val()+",";
+
+            jiaoStr += "????:"+$(inputArr[3]).val()+",";
+
+            jiaoStr += "????:"+$(inputArr[4]).val()+","+$(inputArr[5]).val()+","+$(selectArr[0]).val();
+
+             
+
+            $("#eoContent").val(jiaoStr);
+
+        }
+
+        
+
+        function selectDateLast01(json,date){
+
+            var retr = -1;
+
+            for(var i= 0;i<json.length;i++){
+
+                if(json[i].ZNTS_OUT_DATE==date){
+
+                    if(parseInt(json[i].ZNTS_CHENG_QTY)>parseInt(json[i].ZNTS_CHENG_SALE)){
+
+                        return parseInt(json[i].ZNTS_CHENG_QTY)-parseInt(json[i].ZNTS_CHENG_SALE);
+
+                    }
+
+                    return 0;
+
+                }
+
+            }
+
+            return retr;
+
+        }
+
+        
+
+        function selectDateLast02(json,date){
+
+            var retr = -1;
+
+            for(var i= 0;i<json.length;i++){
+
+                if(json[i].ZNTS_OUT_DATE==date){
+
+                    if(parseInt(json[i].ZNTS_ER_QTY)>parseInt(json[i].ZNTS_ER_SALE)){
+
+                        return parseInt(json[i].ZNTS_ER_QTY)-parseInt(json[i].ZNTS_ER_SALE);
+
+                    }
+
+                    return 0;
+
+                }
+
+            }
+
+            return retr;
+
+        }
+
+        
+
+        function getDateArrBymitinue(){
+
+            
+
+            if($("div.active").length > 0){
+
+                return;
+
+            }
+
+            
+
+            $.ajax({
+
+                type: "POST",
+
+                url: "/weixin/getChaoyangYuYueByWeixin.action",
+
+                dataType: "json",
+
+                data: {"sizeId":2020},
+
+                success: function(json){
+
+                    
+
+                    var stl = "";
+
+                    
+
+                    //????????
+
+                    var currWeek = new Date().getDay();
+
+                    var currDate = new Date().getDate();
+
+                    var currYear = new Date().getFullYear();
+
+                    var currMonth = new Date().getMonth()+1;
+
+                    var lastMaxDay = new Date(new Date().getFullYear(),new Date().getMonth(),0).getDate();
+
+                    var currMaxDay = new Date(new Date().getFullYear(),new Date().getMonth()+1,0).getDate();
+
+                    //????
+
+                    var startDate =  currDate - currWeek > 0 ? currDate - currWeek:lastMaxDay+currDate - currWeek;
+
+                    
+
+                    var showMobth = "";
+
+                    var showDate = "";
+
+                    var showYear = currYear;
+
+                    
+
+                    var systemSelect = 0;
+
+                    
+
+                    for(var i = 0;i<4;i++){
+
+                        for(var k = 0;k<7;k++){
+
+                            
+
+                            if(currDate - currWeek > 0){
+
+                                if(startDate+k+i*7<=currMaxDay){
+
+                                    showMobth = currMonth;
+
+                                    showDate = startDate+k+i*7;
+
+                                }
+
+                                else{
+
+                                    if(currMonth==12){
+
+                                        showMobth = 1;
+
+                                        showYear = currYear + 1;
+
+                                    }else{
+
+                                        showMobth = currMonth+1;
+
+                                    }
+
+                                    showDate = startDate+k+i*7-currMaxDay;
+
+                                }
+
+                            }
+
+                            else{
+
+                                if(startDate+k+i*7<=lastMaxDay){
+
+                                    showMobth = currMonth - 1;
+
+                                    showDate = startDate+k+i*7;
+
+                                }else{
+
+                                    showMobth = currMonth;
+
+                                    showDate = startDate+k+i*7-lastMaxDay;
+
+                                }
+
+                            }
+
+                            
+
+                            var checkedate = showYear+"-"+(showMobth<10?"0"+showMobth:showMobth)+"-"+(showDate<10?"0"+showDate:showDate);
+
+                            var lastQty = selectDateLast01(json,checkedate);
+
+                            
+
+                            if(lastQty==-1){
+
+                                stl += "<div><span>"+showMobth+"-"+showDate+"</span><br/><span>???</span></div>";
+
+                            }
+
+                            else if(lastQty==0){
+
+                                stl += "<div><span>"+showMobth+"-"+showDate+"</span><br/><span style='color:red;'>???</span></div>";
+
+                            }
+
+                            else{
+
+                                
+
+                                var classText = "";
+
+                                if(window.systemApply == 1&&$("div.active").length==0&&systemSelect == 0){
+
+                                    //??????
+
+                                    if($("#system_select_date").val()==""||$("#system_select_date").val()==checkedate){
+
+                                        
+
+                                        if($("#system_dateType").val()==""||$("#system_dateType").val()=="??"){
+
+                                            classText = "class='active'";
+
+                                            systemSelect = 1;
+
+                                            selectOutDateBySystem(checkedate,"??");
+
+                                        }
+
+                                    }
+
+                                }
+
+                                stl += "<div "+classText+" onclick='selectOutDate(this,\""+checkedate+"\",\"??\")'><span>"+showMobth+"-"+showDate+"</span><br/><span style='color:#2a7e4e;'>?:"+lastQty+"</span></div>";
+
+                            }
+
+                        }
+
+                    }
+
+                    $("#dayArr_div_01").html(stl);
+
+                    
+
+                    stl = "";
+
+                    
+
+                    showYear = currYear;
+
+                    
+
+                    for(var i = 0;i<4;i++){
+
+                        for(var k = 0;k<7;k++){
+
+                            
+
+                            if(currDate - currWeek > 0){
+
+                                if(startDate+k+i*7<=currMaxDay){
+
+                                    showMobth = currMonth;
+
+                                    showDate = startDate+k+i*7;
+
+                                }
+
+                                else{
+
+                                    if(currMonth==12){
+
+                                        showMobth = 1;
+
+                                        showYear = currYear + 1;
+
+                                    }else{
+
+                                        showMobth = currMonth+1;
+
+                                    }
+
+                                    showDate = startDate+k+i*7-currMaxDay;
+
+                                }
+
+                            }
+
+                            else{
+
+                                if(startDate+k+i*7<=lastMaxDay){
+
+                                    showMobth = currMonth - 1;
+
+                                    showDate = startDate+k+i*7;
+
+                                }else{
+
+                                    showMobth = currMonth;
+
+                                    showDate = startDate+k+i*7-lastMaxDay;
+
+                                }
+
+                            }
+
+                            
+
+                            var checkedate = showYear+"-"+(showMobth<10?"0"+showMobth:showMobth)+"-"+(showDate<10?"0"+showDate:showDate);
+
+                            var lastQty = selectDateLast02(json,checkedate);
+
+                            
+
+                            if(lastQty==-1){
+
+                                stl += "<div><span>"+showMobth+"-"+showDate+"</span><br/><span>???</span></div>";
+
+                            }
+
+                            else if(lastQty==0){
+
+                                stl += "<div><span>"+showMobth+"-"+showDate+"</span><br/><span style='color:red;'>???</span></div>";
+
+                            }
+
+                            else{
+
+                                var classText = "";
+
+                                if(window.systemApply == 1&&$("div.active").length==0&&systemSelect == 0){
+
+                                    //??????
+
+                                    if($("#system_select_date").val()==""||$("#system_select_date").val()==checkedate){
+
+                                        
+
+                                        if($("#system_dateType").val()==""||$("#system_dateType").val()=="??"){
+
+                                            classText = "class='active'";
+
+                                            systemSelect = 1;
+
+                                            selectOutDateBySystem(checkedate,"??");
+
+                                        }
+
+                                    }
+
+                                }
+
+                                stl += "<div "+classText+" onclick='selectOutDate(this,\""+checkedate+"\",\"??\")'><span>"+showMobth+"-"+showDate+"</span><br/><span style='color:#2a7e4e;'>?:"+lastQty+"</span></div>";
+
+                            }
+
+                        }
+
+                    }
+
+                    
+
+                    $("#dayArr_div_02").html(stl);
+
+                    window.timeIndex ++;
+
+                    $("#showTimeIndex").html("?????????"+window.timeIndex+"?,????,???????!");
+
+                    
+
+                }
+
+            });
+
+            
+
+            
+
+        }
+
+        
+
+        function getAccountListByWeixin(){
+
+            $.ajax({
+
+                url: "/weixin/getAccountListByWeixin.action",
+
+                type: "post",
+
+                dateType:"json",
+
+                success: function (text) {
+
+                    var jsonArr = eval(text);
+
+                    if(jsonArr!=null&&jsonArr.length>0){
+
+                        for(var i=0;i<jsonArr.length;i++){
+
+                            $("#pay_account_list").append(
+
+                                "<div class='pay_account' "+(i>0?"style='margin-top:20px;'":"")+">"+
+
+                                    "<input type='radio' "+(i==0?"checked='checked'":"")+" value='"+jsonArr[i].PA_ID+"' name='post_account'>"+
+
+                                    "<span style='width: 22%;'>????</span>"+
+
+                                    "<span style='color: #69cbfc;'>"+jsonArr[i].TYPE_NAME+"</span>"+
+
+                                    "<span style='width: 18%;'>???</span>"+
+
+                                    "<span style='color: #69cbfc;'>"+jsonArr[i].PA_HL_COIN+"</span>"+
+
+                                "</div>");
+
+                        }
+
+                    }
+
+                }
+
+            });
+
+        }
+
+        
+
+        function submitOrderByuser(){
+
+            
+
+            $('#action_buttom_div').css("display","none");
+
+            
+
+            var inputArr = $("#p_uncheck_").find("input");
+
+            for(var i= 0;i<inputArr.length;i++){
+
+                if($(inputArr[i]).val()==""){
+
+                    alert("???????????!");
+
+                    $('#action_buttom_div').css("display","block");
+
+                    return;
+
+                }
+
+            }
+
+            
+
+            var selectArr = $("#p_uncheck_").find("select");
+
+            for(var i= 0;i<selectArr.length;i++){
+
+                if($(selectArr[i]).val()==""){
+
+                    alert("???????????!");
+
+                    $('#action_buttom_div').css("display","block");
+
+                    return;
+
+                }
+
+            }
+
+            
+
+            
+
+            var userArr = $("#info_check_user").find("input");
+
+            for(var i= 0;i<4;i++){
+
+                if($(userArr[i]).val()==""){
+
+                    alert("???????????!");
+
+                    $('#action_buttom_div').css("display","block");
+
+                    return;
+
+                }
+
+            }
+
+            
+
+            refreshOrderComment();
+
+            
+
+            // ???? 
+
+            var PingLun = $("#eoContent").val();
+
+             
+
+            if(PingLun==""){
+
+              alert("???????????!");
+
+              $('#action_buttom_div').css("display","block");
+
+              return;
+
+             
+
+            }
+
+            
+
+            if($("#yuyueshijianduan").val()==""){
+
+                alert("????????!");
+
+                $('#action_buttom_div').css("display","block");
+
+                return;
+
+            }
+
+            
+
+            $('#order_submit_system').css("display","none");
+
+            $('#order_submit_logining').css("left",($(window).width()/2-150)+"px");
+
+            $('#order_submit_logining').css("display","block");
+
+            $.ajax({
+
+                  type: "POST",
+
+                  url:"/weixin/payOrderJiaoshuiByAccount.action",
+
+                  data: $('#form_param_str').formSerialize(),
+
+                  dataType:"html",
+
+                  success:function(data){
+
+                      $('#order_submit_logining').css("display","none");
+
+                      if(data==1){
+
+                          $('#order_submit_success').css("left",($(window).width()/2-150)+"px");
+
+                          $('#order_submit_success').css("display","block");
+
+                          window.systemApply = 0;
+
+                     }
+
+                     else if(data==11){
+
+                         window.systemApply = 0;
+
+                         alert("????,???????!");
+
+                         $('#action_buttom_div').css("display","block");
+
+                     }
+
+                     else if(data==3){
+
+                         window.systemApply = 0;
+
+                         alert("???????!");
+
+                         $('#action_buttom_div').css("display","block");
+
+                     }
+
+                     else if(data==4){
+
+                         window.systemApply = 0;
+
+                         alert("????????,???????!");
+
+                         $('#action_buttom_div').css("display","block");
+
+                     }
+
+                  }
+
+             });
+
+            
+
+            
+
+        }
+
+    </script>
+
+    
+
+    <style type="text/css">
+
+    .item_riqi_div div{
+
+       display: inline-block;
+
+       width:13%;
+
+       text-align: center;
+
+       background: white;
+
+       height: 36px;
+
+       margin-left: 1px;
+
+       margin-top: 2px;
+
+       border-left:2px solid #6ab3dc;
+
+       margin-bottom: 2px;
+
+    }
+
+    .pay_account {
+
+        border: 1px solid rgb(221, 221, 221);
+
+        border-radius: 5px;
+
+        height: 50px;
+
+        margin-left: 10px;
+
+        margin-top: 10px;
+
+        width: 1178px;
+
+    }
+
+    .pay_account input{
+
+       display: inline-block;
+
+       margin-top: 4px;
+
+    }
+
+    .pay_account span{
+
+       display: inline-block;
+
+       width:21%;
+
+       text-align: left;
+
+       margin-top: 4px;
+
+       
+
+    }
+
+    .pay_account{
+
+        width:98%;
+
+        height:30px;
+
+        margin-left:0px;
+
+        margin-top:0px;
+
+        font-size: 16px;
+
+        line-height: 20px;
+
+    }
+
+    div.active {
+
+        background: #f2c04d;
+
+    }
+
+    </style>
+
+    </head>
+
+    <body>
+
+        <form id="form_param_str">
+
+        <input type="hidden" name="productId" value="2379"/>
+
+        <input type="hidden" name="sizeId" value="2020"/>
+
+        <div class="login-content_weixin" style="width: 100%;height: 100%;">
+
+            <div class="login-con-right" style="width: 100%;height: 100%;margin-right: 0px;position: relative;">
+
+                <img style="width:100%;position: absolute;left: 0px;top: 0px;height:130px;" alt="" src="/html/weixin/images/jiaoshui_top.jpg"/>
+
+                <span style="width:80%;top:30px;position: absolute;left:10%;text-align: center;font-size: 36px;font-family: ????;">??????</span>
+
+                
+
+                <div id="info_check_user" style="background: #293e6b;position: absolute;left:0;top:130px;height:220px;width:100%;">
+
+                    <img style="width:13%;position: absolute;left: 0px;top: 0px;height:40px;" alt="" src="/html/weixin/images/logo_1.png"/>
+
+                    <span style="width:60%;top:10px;position: absolute;left:9%;text-align: left;font-size: 14px;font-family: ????;color: #69cbfc;">????</span>
+
+                    <span style="width:60%;top:25px;position: absolute;left:12%;text-align: left;font-size: 12px;font-family: ????;color:#fff;">????????????????</span>
+
+                
+
+                    <span style="width:25%;top:55px;position: absolute;left:8%;text-align: right;font-size: 14px;font-family: ????;color:#69cbfc;">?????</span>
+
+                    <input style="position: absolute;left:35%;top:45px;px;width:60%;font-size: 16px;border: 1px white red;height:30px;" type="text"  name="tsname" value="???"/>
+
+                    <span style="width:25%;top:95px;position: absolute;left:8%;text-align: right;font-size: 14px;font-family: ????;color:#69cbfc;">???</span>
+
+                    <input style="position: absolute;left:35%;top:85px;px;width:60%;font-size: 16px;border: 1px white red;height:30px;" type="text" name="tsuserid" value="20201141" />
+
+                    
+
+                    <span style="width:25%;top:135px;position: absolute;left:8%;text-align: right;font-size: 14px;font-family: ????;color:#69cbfc;">??</span>
+
+                    <input style="position: absolute;left:35%;top:125px;px;width:24%;font-size: 16px;border: 1px white red;height:30px;" type="text" name="marketemail" value="cainl" />
+
+                    <span style="width:40%;top:135px;position: absolute;left:60%;text-align: left;font-size: 14px;font-family: ????;color:#69cbfc;">@homelink.com.cn</span>
+
+                    
+
+                    <span style="width:25%;top:175px;position: absolute;left:8%;text-align: right;font-size: 14px;font-family: ????;color:#69cbfc;">????</span>
+
+                    <input style="position: absolute;left:35%;top:165px;px;width:60%;font-size: 16px;border: 1px white red;height:30px;" type="text" name="tsphone" value="15313152673" />
+
+                
+
+                </div>
+
+ 
+
+                <div style="background: #0185d0;position: absolute;left:0;top:350px;height:510px;width:100%;">
+
+                    <img style="width:13%;position: absolute;left: 0px;top:10px;height:40px;" alt="" src="/html/weixin/images/logo_2.png"/>
+
+                    <span style="width:60%;top:20px;position: absolute;left:9%;text-align: left;font-size: 14px;font-family: ????;color: #69cbfc;">????</span>
+
+                    <span id="showTimeIndex" style="width:85%;top:35px;position: absolute;left:12%;text-align: left;font-size: 12px;font-family: ????;color:#fff;">?????????1?,????,???????!</span>
+
+                
+
+                    <span style="width:96%;top:60px;position: absolute;left:2%;text-align:center;font-size:18px;font-family: ????;color:#fff;background: #f2c04d;height: 30px;line-height: 30px;">??</span>
+
+                    <div style="width:96%;top:90px;position: absolute;left:2%;background: #53a9da;height: 25px;color: white;line-height: 25px;">
+
+                       <span style="display: inline-block;width:14%;text-align: center;">?</span>
+
+                       <span style="display: inline-block;width:14%;text-align: center;">?</span>
+
+                       <span style="display: inline-block;width:13%;text-align: center;">?</span>
+
+                       <span style="display: inline-block;width:13%;text-align: center;">?</span>
+
+                       <span style="display: inline-block;width:13%;text-align: center;">?</span>
+
+                       <span style="display: inline-block;width:13%;text-align: center;">?</span>
+
+                       <span style="display: inline-block;width:13%;text-align: center;">?</span>
+
+                    </div>
+
+                    <div id="dayArr_div_01" class="item_riqi_div" style="width:96%;top:115px;position: absolute;left:2%;background: #6ab3dc;color: white;color: #999;line-height: 16px;">
+
+                       
+
+                    </div>
+
+                    
+
+                    <span style="width:96%;top:280px;position: absolute;left:2%;text-align:center;font-size:18px;font-family: ????;color:#fff;background: #bc353c;height: 30px;line-height: 30px;">??</span>
+
+                    <div style="width:96%;top:310px;position: absolute;left:2%;background: #53a9da;height: 25px;color: white;line-height: 25px;">
+
+                       <span style="display: inline-block;width:14%;text-align: center;">?</span>
+
+                       <span style="display: inline-block;width:14%;text-align: center;">?</span>
+
+                       <span style="display: inline-block;width:13%;text-align: center;">?</span>
+
+                       <span style="display: inline-block;width:13%;text-align: center;">?</span>
+
+                       <span style="display: inline-block;width:13%;text-align: center;">?</span>
+
+                       <span style="display: inline-block;width:13%;text-align: center;">?</span>
+
+                       <span style="display: inline-block;width:13%;text-align: center;">?</span>
+
+                    </div>
+
+                    <div id="dayArr_div_02" class="item_riqi_div" style="width:96%;top:335px;position: absolute;left:2%;background: #6ab3dc;color: white;color: #999;line-height: 16px;">
+
+                       
+
+                    </div>
+
+                </div>
+
+                
+
+                <div id="p_uncheck_" style="background: #4892dd;position: absolute;left:0;top:860px;height:270px;width:100%;">
+
+                    <img style="width:13%;position: absolute;left: 0px;top:10px;height:40px;" alt="" src="/html/weixin/images/logo_3.png"/>
+
+                    <span style="width:60%;top:20px;position: absolute;left:9%;text-align: left;font-size: 14px;font-family: ????;color: #69cbfc;">????</span>
+
+                    <span style="width:70%;top:35px;position: absolute;left:12%;text-align: left;font-size: 12px;font-family: ????;color:#fff;">?????????????????</span>
+
+                
+
+                    <span style="width:25%;top:65px;position: absolute;left:8%;text-align: right;font-size: 14px;font-family: ????;color:#69cbfc;">?????</span>
+
+                    <select id="yuyueshijianduan" name="yuyueshijianduan" style="position: absolute;left:35%;top:55px;px;width:61%;font-size: 16px;border: 1px white red;height:30px;">
+
+                        <option value="">???</option>
+
+                    </select>
+
+                
+
+                    <span style="width:25%;top:105px;position: absolute;left:8%;text-align: right;font-size: 14px;font-family: ????;color:#69cbfc;">?????</span>
+
+                    <input name="wangqianhetonghao" onkeyup="refreshOrderComment()" style="position: absolute;left:35%;top:95px;px;width:60%;font-size: 16px;border: 1px white red;height:30px;" type="text" />
+
+                    
+
+                    <span style="width:25%;top:145px;position: absolute;left:8%;text-align: right;font-size: 14px;font-family: ????;color:#69cbfc;">????</span>
+
+                    <input onkeyup="refreshOrderComment()" style="position: absolute;left:35%;top:135px;px;width:60%;font-size: 16px;border: 1px white red;height:30px;" type="text" />
+
+
+
+                    <span style="width:25%;top:185px;position: absolute;left:8%;text-align: right;font-size: 14px;font-family: ????;color:#69cbfc;">??????</span>
+
+                    <input onkeyup="refreshOrderComment()" style="position: absolute;left:35%;top:175px;px;width:60%;font-size: 16px;border: 1px white red;height:30px;" type="text" />
+
+                
+
+                    <span style="width:25%;top:225px;position: absolute;left:8%;text-align: right;font-size: 14px;font-family: ????;color:#69cbfc;">????</span>
+
+                    <input onkeyup="refreshOrderComment()" style="position: absolute;left:35%;top:215px;px;width:60%;font-size: 16px;border: 1px white red;height:30px;" type="text" />
+
+                    
+
+                    <input name="yuyueshijian" value="" type="hidden" />
+
+                    <input name="dateType" value=""  type="hidden" />
+
+                    
+
+                </div>
+
+                <input id="eoContent" name="eoContent" value="" type="hidden" />&nbsp;&nbsp;
+
+                <input id="serverUserId" name="serverUserId" value="20201141" type="hidden" />&nbsp;&nbsp;
+
+                <div style="background: #1C459F;position: absolute;left:0;top:1130px;width:100%;height:230px;">
+
+                    <img style="width:13%;position: absolute;left: 0px;top:10px;height:40px;" alt="" src="/html/weixin/images/logo_4.png"/>
+
+                    <span style="width:60%;top:20px;position: absolute;left:9%;text-align: left;font-size: 14px;font-family: ????;color: #69cbfc;">????</span>
+
+                    <span style="width:70%;top:35px;position: absolute;left:12%;text-align: left;font-size: 12px;font-family: ????;color:#fff;">????????</span>
+
+                
+
+                    <div id="pay_account_list" style="background: #1C459F;position: absolute;left:1%;top:65px;width:98%;height:165px;">
+
+                    </div>
+
+                </div>
+
+                
+
+                
+
+                <div style="background: #4892dd;position: absolute;left:0;top:1360px;width:100%;height:200px;display: none;">
+
+                    <img style="width:13%;position: absolute;left: 0px;top:10px;height:40px;" alt="" src="/html/weixin/images/logo_5.png"/>
+
+                    <span style="width:60%;top:20px;position: absolute;left:9%;text-align: left;font-size: 14px;font-family: ????;color: #69cbfc;">????</span>
+
+                    <span style="width:75%;top:35px;position: absolute;left:12%;text-align: left;font-size: 12px;font-family: ????;color:#fff;">???????????????????</span>
+
+                
+
+                    <span style="width:25%;top:65px;position: absolute;left:8%;text-align: right;font-size: 14px;font-family: ????;color:#69cbfc;">??????</span>
+
+                    <input id="system_select_date" onclick="WdatePicker({dateFmt:'yyyy-MM-dd'});" style="position: absolute;left:35%;top:55px;px;width:60%;font-size: 16px;border: 1px white red;height:30px;" type="text" />
+
+                    
+
+                    <span style="width:25%;top:105px;position: absolute;left:8%;text-align: right;font-size: 14px;font-family: ????;color:#69cbfc;">??????</span>
+
+                    <select id="system_dateType" style="position: absolute;left:35%;top:95px;px;width:61%;font-size: 16px;border: 1px white red;height:30px;">
+
+                        <option value="">???</option>
+
+                        <option value="??">??</option>
+
+                        <option value="??">??</option>
+
+                    </select>
+
+                    
+
+                    <span style="width:84%;top:145px;position: absolute;left:8%;text-align: left;font-size: 14px;font-family: ????;color:red;">*????????,????????????????????~</span>
+
+                </div>
+
+                
+
+                <div id="action_buttom_div" style="background: #1C459F;position: absolute;left:0;top:1360px;width:100%;height:100px;">
+
+                      <span onclick="submitOrderByuser()" style="background: #f4bd48;position: absolute;left:0px;top:20px;width:100%;height:40px;font-size: 20px;line-height: 40px;text-align: center;">????</span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        </form>
+
+        
+
+        <div id="order_submit_logining" class="model_talk_div"  style="background:url(/html/weixin/images/logo_logining.png);width:300px;height:105px; display: none;left: 481.5px;top: 50px;text-align:center;">
+
+            <span style="color:white;font-size:30px;line-height:90px;">???????~</span>
+
+        </div>
+
+        <div id="order_submit_system" class="model_talk_div"  style="background:url(/html/weixin/images/logo_logining.png);width:300px;height:105px; display: none;left: 481.5px;top: 50px;text-align:center;">
+
+            <span style="color:white;font-size:30px;line-height:90px;">???????~</span>
+
+        </div>
+
+        <div onclick="location.href='/weixin/toWeixinIndex.action';" id="order_submit_success" class="model_talk_div"  style="background:url(/html/weixin/images/logo_success.png);width:300px;height:105px; display: none;left: 481.5px;top: 50px;text-align:center;">
+
+            <span style="color:white;font-size:30px;line-height:90px;">??????~</span>
+
+        </div>
+
+        
+
+        
+
+    </body>
+
+</html>
